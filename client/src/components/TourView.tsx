@@ -204,14 +204,14 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
         </div>
       )}
 
-      {/* Map */}
-      {view === "map" && (
+      {/* Map — always visible in virtual mode */}
+      {(view === "map" || virtual) && (
         <div className="tour-map-section">
           <RouteMap
-            pois={sortedPois}
+            pois={virtual ? (currentVirtualPoi ? sortedPois : []) : sortedPois}
             userLat={userLat}
             userLng={userLng}
-            activePoiId={activePoiId}
+            activePoiId={virtual ? currentVirtualPoi?.id || null : activePoiId}
             visitedPoiIds={allVisitedPoiIds}
             language={language}
             onPoiClick={(id) => {
