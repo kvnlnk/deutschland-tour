@@ -337,6 +337,12 @@ Recommended setup:
 
 ---
 
+## 🤖 Fully Vibecoded with Hermes Agent
+
+This project was built entirely through natural language conversations with [Hermes Agent](https://hermes-agent.nousresearch.com) — an autonomous AI coding assistant. From architecture to deployment, every line of code was generated, tested, and deployed via voice and chat prompts.
+
+---
+
 ## 📄 License
 
 Open source. Free for personal and educational use.
