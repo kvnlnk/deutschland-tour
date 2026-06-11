@@ -20,7 +20,7 @@ export const berlinClassicRoute: Route = {
       name: "Brandenburger Tor",
       nameEn: "Brandenburg Gate",
       description:
-        "Das Brandenburger Tor ist das bekannteste Wahrzeichen Berlins und ein Symbol der deutschen Einheit. Erbaut zwischen 1788 und 1791, war es Teil der Zollmauer und wurde später zum Triumphbogen umgestaltet. Während der Teilung stand das Tor im Sperrgebiet direkt an der Mauer – nach dem Mauerfall 1989 wurde es zum Symbol der Wiedervereinigung.",
+        "Stell dich vor das Brandenburger Tor - das wichtigste Symbol der deutschen Einheit. 1791 als Stadttor erbaut, wurde es zum Triumphbogen umgestaltet. Als die Mauer fiel, tanzten hier Menschen auf der Mauer. Heute stehst du genau dort, wo Geschichte geschrieben wurde.",
       descriptionEn:
         "The Brandenburg Gate is Berlin's most famous landmark and a symbol of German unity. Built between 1788 and 1791, it was part of the customs wall and later redesigned as a triumphal arch. During the division, the gate stood in the restricted area – after the fall of the Wall, it became the symbol of reunification.",
       lat: 52.516274,

@@ -52,7 +52,7 @@ export const hamburgHafen: Route = {
       name: "Speicherstadt",
       nameEn: "Speicherstadt (Warehouse District)",
       description:
-        "Die Speicherstadt ist das größte zusammenhängende Lagerhaus-Ensemble der Welt. Seit 2015 UNESCO-Weltkulturerbe, erstreckt sie sich über 26 Hektar mit roten Backsteinbauten auf Eichenpfählen – das Herz des Hamburger Hafens seit 1888.",
+        "Willkommen in der groessten Lagerhausanlage der Welt! 26 Hektar rote Backsteinbauten auf Eichenpfaehlen - UNESCO-Weltkulturerbe seit 2015. Hier lagerte einst Kaffee, Tee und Gewuerze aus aller Welt. Zwischen den Kanaelen fuehlst du dich wie in einer anderen Zeit.",
       descriptionEn:
         "The Speicherstadt is the world's largest coherent warehouse complex. A UNESCO World Heritage site since 2015, it spans 26 hectares with red brick buildings on oak piles – the heart of Hamburg's port since 1888.",
       lat: 53.5447,

@@ -20,7 +20,7 @@ export const muenchenAltstadt: Route = {
       name: "Marienplatz",
       nameEn: "Marienplatz",
       description:
-        "Der Marienplatz ist seit 1158 das Zentrum Münchens. Das Neue Rathaus mit seinem berühmten Glockenspiel zieht täglich tausende Besucher an. Um 11 und 12 Uhr tanzen die Figuren des Glockenspiels das Schäfflertanz-Spektakel nach.",
+        "Seit 1158 ist der Marienplatz das Herz Muenchens. Um 11 und 12 Uhr tanzen die Figuren des Glockenspiels den Schaefflertanz - ein Spektakel, das taeglich tausende Besucher anzieht. Die Mariensaeule erinnert an die Rettung der Stadt im Dreissigjaehrigen Krieg.",
       descriptionEn:
         "Marienplatz has been Munich's center since 1158. The New Town Hall with its famous Glockenspiel attracts thousands daily. At 11 and 12, the Glockenspiel figures perform the Schäffler dance spectacle.",
       lat: 48.1372,
