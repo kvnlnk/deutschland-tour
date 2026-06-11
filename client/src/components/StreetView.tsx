@@ -7,17 +7,14 @@ interface StreetViewProps {
 }
 
 // Get a free token at https://www.mapillary.com/dashboard/developers
-// Then set window.__MAPILLARY_TOKEN__ in index.html or via env
+const MAPILLARY_TOKEN = "MLY|27445116845148820|927edcad8f9e706d5c0330683746bc81";
 
 export default function StreetView({ lat, lng, name }: StreetViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
-  const token = (typeof window !== "undefined")
-    ? (window as any).__MAPILLARY_TOKEN__
-    : null;
 
   useEffect(() => {
-    if (!token || !containerRef.current) return;
+    if (!MAPILLARY_TOKEN || !containerRef.current) return;
 
     const script = document.createElement("script");
     script.src = "https://unpkg.com/mapillary-js@4.1/dist/mapillary.js";
@@ -26,7 +23,7 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
       const { Viewer } = (window as any).mapillary;
       try {
         const viewer = new Viewer({
-          accessToken: token,
+          accessToken: MAPILLARY_TOKEN,
           container: containerRef.current,
           closeTo: { lat, lng },
         });
@@ -50,9 +47,9 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
       script.remove();
       link.remove();
     };
-  }, [lat, lng, token]);
+  }, [lat, lng, MAPILLARY_TOKEN]);
 
-  if (!token) {
+  if (!MAPILLARY_TOKEN) {
     return (
       <div className="street-view street-view--missing">
         <div className="street-view-header">
