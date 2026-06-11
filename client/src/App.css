@@ -1229,17 +1229,8 @@ img {
 
 /* === Responsive === */
 @media (min-width: 640px) {
-  .city-card {
-    display: flex;
-    flex-direction: row-reverse;
-  }
   .city-card-image {
-    width: 280px;
-    aspect-ratio: auto;
-    flex-shrink: 0;
-  }
-  .city-card-body {
-    flex: 1;
+    aspect-ratio: 16/9;
   }
   .poi-card {
     display: flex;
