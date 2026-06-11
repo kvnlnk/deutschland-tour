@@ -1,0 +1,162 @@
+import { useState, useEffect } from "react";
+
+interface Review {
+  id: string;
+  routeId: string;
+  rating: number; // 1-5
+  comment: string;
+  author: string;
+  date: string;
+}
+
+interface ReviewSectionProps {
+  routeId: string;
+  routeName: string;
+}
+
+const STORAGE_KEY = "deutschland-tour-reviews";
+
+export function getReviewsForRoute(routeId: string): Review[] {
+  try {
+    const all: Record<string, Review[]> = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "{}"
+    );
+    return all[routeId] || [];
+  } catch {
+    return [];
+  }
+}
+
+export function getAverageRating(routeId: string): { avg: number; count: number } {
+  const reviews = getReviewsForRoute(routeId);
+  if (reviews.length === 0) return { avg: 0, count: 0 };
+  const sum = reviews.reduce((a, r) => a + r.rating, 0);
+  return { avg: +(sum / reviews.length).toFixed(1), count: reviews.length };
+}
+
+export default function ReviewSection({ routeId, routeName }: ReviewSectionProps) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [author, setAuthor] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    setReviews(getReviewsForRoute(routeId));
+  }, [routeId]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0) return;
+
+    const newReview: Review = {
+      id: `rev-${Date.now()}`,
+      routeId,
+      rating,
+      comment: comment.trim(),
+      author: author.trim() || "Anonym",
+      date: new Date().toLocaleDateString("de-DE"),
+    };
+
+    const all: Record<string, Review[]> = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "{}"
+    );
+    all[routeId] = [newReview, ...(all[routeId] || [])];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+
+    setReviews(all[routeId]);
+    setRating(0);
+    setComment("");
+    setAuthor("");
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  const { avg, count } = getAverageRating(routeId);
+
+  const renderStars = (value: number, interactive = false) => (
+    <div className="review-stars">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <button
+          key={s}
+          type={interactive ? "button" : undefined}
+          className={`review-star ${s <= (interactive ? hoverRating || rating : value) ? "review-star--filled" : ""}`}
+          onClick={interactive ? () => setRating(s) : undefined}
+          onMouseEnter={interactive ? () => setHoverRating(s) : undefined}
+          onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
+          disabled={!interactive}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={s <= (interactive ? hoverRating || rating : value) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="review-section">
+      <div className="review-header">
+        <h3 className="review-title">Bewertungen</h3>
+        {count > 0 && (
+          <div className="review-summary">
+            <span className="review-avg">{avg}</span>
+            {renderStars(Math.round(avg))}
+            <span className="review-count">({count})</span>
+          </div>
+        )}
+      </div>
+
+      {/* Submit Form */}
+      <form className="review-form" onSubmit={handleSubmit}>
+        <div className="review-form-row">
+          <label className="review-label">Deine Bewertung</label>
+          {renderStars(rating, true)}
+        </div>
+        <input
+          className="review-input"
+          placeholder="Dein Name (optional)"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          maxLength={30}
+        />
+        <textarea
+          className="review-textarea"
+          placeholder="Wie war die Tour? Tipp, Highlight, Verbesserung…"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={3}
+          maxLength={500}
+        />
+        <button
+          className="btn btn-primary review-submit"
+          type="submit"
+          disabled={rating === 0}
+        >
+          {submitted ? "✓ Abgeschickt!" : "Bewertung abgeben"}
+        </button>
+      </form>
+
+      {/* List */}
+      <div className="review-list">
+        {reviews.length === 0 ? (
+          <p className="review-empty">
+            Noch keine Bewertungen. Sei der Erste!
+          </p>
+        ) : (
+          reviews.map((r) => (
+            <div key={r.id} className="review-item">
+              <div className="review-item-header">
+                <span className="review-item-author">{r.author}</span>
+                <span className="review-item-date">{r.date}</span>
+              </div>
+              {renderStars(r.rating)}
+              {r.comment && <p className="review-item-comment">{r.comment}</p>}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

@@ -6,6 +6,7 @@ import { useGeolocation } from "../hooks/useGeolocation";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { useProximityTracker } from "../hooks/useProximityTracker";
 import type { POI } from "../types";
+import ReviewSection from "./ReviewSection";
 
 interface TourViewProps {
   pois: POI[];
@@ -193,6 +194,11 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
             onLocate={() => handlePoiLocate(poi)}
           />
         ))}
+      </div>
+
+      {/* Reviews */}
+      <div className="tour-reviews">
+        <ReviewSection routeId={routeId} routeName={routeName} />
       </div>
 
       {/* Audio Player */}
