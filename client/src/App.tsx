@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
 import FAQSection from "./components/FAQSection";
+import SearchBar from "./components/SearchBar";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
 import { routes, getRouteById } from "./data";
 
@@ -36,6 +37,50 @@ export function AppContent() {
             onStartTour={() => startTour("berlin-classic")}
             onLearnMore={() => setScreen("about")}
           />
+
+          {/* Search Section */}
+          <section className="search-section">
+            <div className="search-section-content">
+              <SearchBar
+                onSearch={(query) => {
+                  const found = routes.find(
+                    (r) =>
+                      r.city.toLowerCase().includes(query.toLowerCase()) ||
+                      r.tags?.some((t) =>
+                        t.toLowerCase().includes(query.toLowerCase())
+                      )
+                  );
+                  if (found) startTour(found.id);
+                }}
+              />
+              <div className="search-popular">
+                <span className="search-popular-label">Beliebt:</span>
+                {routes.map((r) => (
+                  <button
+                    key={r.id}
+                    className="search-popular-tag"
+                    onClick={() => startTour(r.id)}
+                  >
+                    {r.city}
+                  </button>
+                ))}
+                {["historisch", "architektur", "kulinarisch"].map((tag) => (
+                  <button
+                    key={tag}
+                    className="search-popular-tag search-popular-tag--tag"
+                    onClick={() => {
+                      const found = routes.find((r) =>
+                        r.tags?.includes(tag)
+                      );
+                      if (found) startTour(found.id);
+                    }}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* Stats Counter Section */}
           <section className="stats-section">
