@@ -6,15 +6,16 @@ interface StreetViewProps {
   name: string;
 }
 
-// Get a free token at https://www.mapillary.com/dashboard/developers
-const MAPILLARY_TOKEN = "MLY|27445116845148820|927edcad8f9e706d5c0330683746bc81";
+// Token injected via VITE_MAPILLARY_TOKEN at build time
+// See .env.example for setup
 
 export default function StreetView({ lat, lng, name }: StreetViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
+  const token = import.meta.env.VITE_MAPILLARY_TOKEN || "";
 
   useEffect(() => {
-    if (!MAPILLARY_TOKEN || !containerRef.current) return;
+    if (!token || !containerRef.current) return;
 
     const script = document.createElement("script");
     script.src = "https://unpkg.com/mapillary-js@4.1/dist/mapillary.js";
@@ -23,7 +24,7 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
       const { Viewer } = (window as any).mapillary;
       try {
         const viewer = new Viewer({
-          accessToken: MAPILLARY_TOKEN,
+          accessToken: token,
           container: containerRef.current,
           closeTo: { lat, lng },
         });
@@ -47,9 +48,9 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
       script.remove();
       link.remove();
     };
-  }, [lat, lng, MAPILLARY_TOKEN]);
+  }, [lat, lng, token]);
 
-  if (!MAPILLARY_TOKEN) {
+  if (!token) {
     return (
       <div className="street-view street-view--missing">
         <div className="street-view-header">
@@ -58,11 +59,7 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
         <div className="street-view-placeholder">
           <p>🌍 Street View kommt später</p>
           <p className="street-view-hint">
-            Hol dir einen kostenlosen Mapillary-Token auf<br />
-            <a href="https://www.mapillary.com/dashboard/developers" target="_blank" rel="noopener noreferrer">
-              mapillary.com/dashboard/developers
-            </a>
-            <br />und setze <code>window.__MAPILLARY_TOKEN__</code>
+            Setze <code>VITE_MAPILLARY_TOKEN</code> in der <code>.env</code>
           </p>
         </div>
       </div>
