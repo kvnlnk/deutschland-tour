@@ -9,7 +9,7 @@ export const hamburgHafen: Route = {
     "Vom Rathaus durch die Speicherstadt zum Hafen – Deutschlands Tor zur Welt. Erleben Sie 3,5 km hanseatische Geschichte und moderne Architektur.",
   descriptionEn:
     "From City Hall through the Speicherstadt to the harbor – Germany's Gateway to the World. Experience 3.5 km of Hanseatic history and modern architecture.",
-  imageUrl: "https://picsum.photos/seed/hamburg/800/400",
+  imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
   durationMinutes: 100,
   distanceKm: 3.5,
   priceCents: 499,
@@ -26,7 +26,7 @@ export const hamburgHafen: Route = {
       lat: 53.5503,
       lng: 9.9929,
       order: 1,
-      imageUrl: "https://picsum.photos/seed/hamburg-rathaus/600/400",
+      imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
       duration: 10,
       audioDe: "/audio/hamburg-rathaus_de.mp3",
       audioEn: "/audio/hamburg-rathaus_en.mp3",

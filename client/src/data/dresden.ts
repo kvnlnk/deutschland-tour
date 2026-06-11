@@ -9,7 +9,7 @@ export const dresdenClassicRoute: Route = {
     "Vom Neumarkt über die Brühlsche Terrasse zum Zwinger – erleben Sie 3,5 km barocke Pracht und den einzigartigen Blick auf die Elbe, der Dresden den Beinamen 'Elbflorenz' einbrachte.",
   descriptionEn:
     "From Neumarkt across the Brühl's Terrace to the Zwinger – experience 3.5 km of Baroque splendor and the unique view of the Elbe that earned Dresden the nickname 'Florence on the Elbe'.",
-  imageUrl: "https://picsum.photos/seed/dresden/800/400",
+  imageUrl: "https://images.unsplash.com/photo-1599508706064-3d38baaef236?w=800&q=80",
   durationMinutes: 100,
   distanceKm: 3.5,
   priceCents: 499,
@@ -26,7 +26,7 @@ export const dresdenClassicRoute: Route = {
       lat: 51.0519,
       lng: 13.7418,
       order: 1,
-      imageUrl: "https://picsum.photos/seed/dresden-frauenkirche/600/400",
+      imageUrl: "https://images.unsplash.com/photo-1599508706064-3d38baaef236?w=800&q=80",
       duration: 15,
       audioDe: "/audio/dresden-frauenkirche_de.mp3",
       audioEn: "/audio/dresden-frauenkirche_en.mp3",

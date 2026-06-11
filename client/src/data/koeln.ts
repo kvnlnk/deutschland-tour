@@ -9,7 +9,7 @@ export const koelnClassicRoute: Route = {
     "Vom weltberühmten Kölner Dom über die Hohenzollernbrücke durch die lebendige Altstadt – entdecken Sie 2000 Jahre Kölner Geschichte auf 3,8 km am Rhein.",
   descriptionEn:
     "From the world-famous Cologne Cathedral across the Hohenzollern Bridge through the lively Old Town – discover 2000 years of Cologne history on 3.8 km along the Rhine.",
-  imageUrl: "https://picsum.photos/seed/koeln/800/400",
+  imageUrl: "https://images.unsplash.com/photo-1567154972527-d5d7f88a1d0f?w=800&q=80",
   durationMinutes: 110,
   distanceKm: 3.8,
   priceCents: 499,
@@ -26,7 +26,7 @@ export const koelnClassicRoute: Route = {
       lat: 50.9413,
       lng: 6.958,
       order: 1,
-      imageUrl: "https://picsum.photos/seed/koeln-dom/600/400",
+      imageUrl: "https://images.unsplash.com/photo-1567154972527-d5d7f88a1d0f?w=800&q=80",
       duration: 15,
       audioDe: "/audio/koeln-dom_de.mp3",
       audioEn: "/audio/koeln-dom_en.mp3",

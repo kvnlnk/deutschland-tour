@@ -9,7 +9,7 @@ export const berlinClassicRoute: Route = {
     "Vom Brandenburger Tor zum Alexanderplatz – erleben Sie 800 Jahre Berlin auf einer 4 km langen Route durch das historische Zentrum. Vorbei an Reichstag, Holocaust-Mahnmal und Museumsinsel.",
   descriptionEn:
     "From Brandenburg Gate to Alexanderplatz – experience 800 years of Berlin on a 4 km walk through the historic center. Past the Reichstag, Holocaust Memorial, and Museum Island.",
-  imageUrl: "https://picsum.photos/seed/berlin/800/400",
+  imageUrl: "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&q=80",
   durationMinutes: 120,
   distanceKm: 4.2,
   priceCents: 0, // free demo tour
@@ -26,7 +26,7 @@ export const berlinClassicRoute: Route = {
       lat: 52.516274,
       lng: 13.377704,
       order: 1,
-      imageUrl: "https://picsum.photos/seed/brandenburger-tor/600/400",
+      imageUrl: "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&q=80",
       duration: 10,
       audioDe: "/audio/brandenburger-tor_de.mp3",
       audioEn: "/audio/brandenburger-tor_en.mp3",
