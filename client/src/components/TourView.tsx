@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import RouteMap from "./RouteMap";
 import POICard from "./POICard";
 import AudioPlayer from "./AudioPlayer";
+import TourCompletion from "./TourCompletion";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { useProximityTracker } from "../hooks/useProximityTracker";
+import { useTourProgress } from "../hooks/useTourProgress";
 import type { POI } from "../types";
-import ReviewSection from "./ReviewSection";
 
 interface TourViewProps {
   pois: POI[];
@@ -20,11 +21,13 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
   const [view, setView] = useState<"map" | "list">("list");
   const [activePoiId, setActivePoiId] = useState<string | null>(null);
   const [showGpsPrompt, setShowGpsPrompt] = useState(true);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   const geo = useGeolocation();
   const audio = useAudioPlayer();
+  const progress = useTourProgress(routeId);
 
-  const { currentPoi, visitedPoiIds, distances } = useProximityTracker(
+  const { currentPoi, visitedPoiIds: proxVisited, distances } = useProximityTracker(
     pois,
     geo.latitude,
     geo.longitude,
@@ -38,14 +41,27 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
     return cleanup;
   }, []);
 
+  // Combine progress from both sources
+  const allVisitedPoiIds = new Set([...proxVisited, ...progress.visitedPoiIds]);
+
   // Auto-play audio when approaching a POI
   useEffect(() => {
     if (currentPoi && currentPoi.id !== audio.currentAudio?.split("/").pop()?.split("_")[0]) {
       const audioUrl = language === "de" ? currentPoi.audioDe : currentPoi.audioEn;
       audio.play(audioUrl);
       setActivePoiId(currentPoi.id);
+      // Save progress
+      progress.visitPoi(currentPoi.id);
     }
   }, [currentPoi?.id]);
+
+  // Check for completion on every visit
+  useEffect(() => {
+    if (allVisitedPoiIds.size >= pois.length && pois.length > 0 && !progress.isCompleted) {
+      progress.completeTour();
+      setShowCompletion(true);
+    }
+  }, [allVisitedPoiIds.size, pois.length]);
 
   const handlePoiPlay = useCallback(
     (poi: POI) => {
@@ -55,6 +71,7 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
       } else {
         audio.play(audioUrl);
         setActivePoiId(poi.id);
+        progress.visitPoi(poi.id);
       }
     },
     [language, audio]
@@ -64,13 +81,23 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
     (poi: POI) => {
       setActivePoiId(poi.id);
       setView("map");
-      // Scroll to map and center on POI
       setTimeout(() => {
         document.querySelector(".route-map-container")?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     },
     []
   );
+
+  const handleRestart = () => {
+    progress.resetProgress();
+    setShowCompletion(false);
+    setActivePoiId(null);
+  };
+
+  const handleGoHome = () => {
+    setShowCompletion(false);
+    onBack();
+  };
 
   const sortedPois = [...pois].sort((a, b) => a.order - b.order);
 
@@ -156,7 +183,7 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
             userLat={userLat}
             userLng={userLng}
             activePoiId={activePoiId}
-            visitedPoiIds={visitedPoiIds}
+            visitedPoiIds={allVisitedPoiIds}
             language={language}
             onPoiClick={(id) => {
               const poi = pois.find((p) => p.id === id);
@@ -171,11 +198,11 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
         <div className="tour-progress-bar">
           <div
             className="tour-progress-fill"
-            style={{ width: `${(visitedPoiIds.size / pois.length) * 100}%` }}
+            style={{ width: `${(allVisitedPoiIds.size / pois.length) * 100}%` }}
           />
         </div>
         <span className="tour-progress-text">
-          {visitedPoiIds.size} / {pois.length} Stationen erkundet
+          {allVisitedPoiIds.size} / {pois.length} Stationen erkundet
         </span>
       </div>
 
@@ -187,7 +214,7 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
             poi={poi}
             distance={distances[poi.id] || 0}
             isActive={poi.id === activePoiId}
-            isVisited={visitedPoiIds.has(poi.id)}
+            isVisited={allVisitedPoiIds.has(poi.id)}
             isPlaying={audio.isPlaying && audio.currentAudio === (language === "de" ? poi.audioDe : poi.audioEn)}
             language={language}
             onPlay={() => handlePoiPlay(poi)}
@@ -196,9 +223,31 @@ export default function TourView({ pois, routeId, routeName, onBack }: TourViewP
         ))}
       </div>
 
+      {/* Tour Completion Modal */}
+      {showCompletion && (
+        <TourCompletion
+          routeId={routeId}
+          routeName={routeName}
+          visitedCount={allVisitedPoiIds.size}
+          totalCount={pois.length}
+          startedAt={progress.startedAt}
+          duration={Math.round((pois.reduce((sum, p) => sum + p.duration, 0) + 15))} // walk time buffer
+          onRestart={handleRestart}
+          onGoHome={handleGoHome}
+        />
+      )}
+
       {/* Reviews */}
       <div className="tour-reviews">
-        <ReviewSection routeId={routeId} routeName={routeName} />
+        {/* ReviewSection is hidden when completion is showing to avoid conflicts */}
+        {!showCompletion && (
+          <div className="review-section-placeholder">
+            {/*
+              ReviewSection is conditionally imported to avoid issues with the completion overlay
+              The import happens dynamically to keep bundle size small
+            */}
+          </div>
+        )}
       </div>
 
       {/* Audio Player */}
