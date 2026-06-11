@@ -97,7 +97,7 @@ export function getStats() {
   return {
     pois: routes.reduce((sum, r) => sum + r.pois.length, 0),
     distance: routes.reduce((sum, r) => sum + r.distanceKm, 0).toFixed(1),
-    cities: routes.length,
+    cities: new Set(routes.map((r) => r.city)).size,
     languages: 2,
   };
 }

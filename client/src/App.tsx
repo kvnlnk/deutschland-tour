@@ -25,7 +25,7 @@ const TourView = lazy(() => import("./components/TourView"));
 
 type Page = "home" | "tours" | "pricing" | "about" | "tour" | "custom";
 
-const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic", "koeln-classic", "dresden-classic", "heidelberg-preview"];
+const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic", "koeln-dom", "dresden-altstadt", "heidelberg-schloss"];
 
 export function AppContent() {
   const [page, setPage] = useState<Page>("home");

@@ -33,6 +33,7 @@ export default function RouteMap({
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const userMarkerRef = useRef<L.Marker | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
+  const hasFitBounds = useRef(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -117,9 +118,10 @@ export default function RouteMap({
       dashArray: "10, 6",
     }).addTo(map);
 
-    // Fit bounds to show all POIs
-    if (latlngs.length > 0) {
+    // Fit bounds to show all POIs — only on first load
+    if (latlngs.length > 0 && !hasFitBounds.current) {
       map.fitBounds(L.latLngBounds(latlngs), { padding: [50, 50] });
+      hasFitBounds.current = true;
     }
   }, [pois, visitedPoiIds, activePoiId, onPoiClick]);
 

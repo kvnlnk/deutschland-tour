@@ -9,7 +9,7 @@ export const muenchenAltstadt: Route = {
     "Vom Marienplatz durch die historische Altstadt – erleben Sie bayerische Geschichte, Bierkultur und königliche Pracht auf 3 km durch das Herz Münchens.",
   descriptionEn:
     "From Marienplatz through the historic old town – experience Bavarian history, beer culture and royal splendor on a 3 km walk through the heart of Munich.",
-  imageUrl: "https://images.unsplash.com/photo-1596079890744-c1a0462d0975?w=800&q=80",
+  imageUrl: "https://picsum.photos/seed/muenchen/800/400",
   durationMinutes: 90,
   distanceKm: 3.1,
   priceCents: 499,

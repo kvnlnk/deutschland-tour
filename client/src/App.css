@@ -506,6 +506,10 @@ img {
   font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .city-card-meta {

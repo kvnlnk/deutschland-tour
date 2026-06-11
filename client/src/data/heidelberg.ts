@@ -9,7 +9,7 @@ export const heidelbergPreviewRoute: Route = {
     "Entdecke die romantische Universitätsstadt am Neckar – mit Deutschlands berühmtestem Schloss und der malerischen Altstadt.",
   descriptionEn:
     "Discover the romantic university town on the Neckar River – with Germany's most famous castle and the picturesque Old Town.",
-  imageUrl: "https://images.unsplash.com/photo-1568889531942-0e428a2edbfe?w=800&q=80",
+  imageUrl: "https://picsum.photos/seed/heidelberg/800/400",
   durationMinutes: 60,
   distanceKm: 2.0,
   priceCents: 0, // free demo tour

@@ -4,8 +4,8 @@
   "installCommand": "cd client && npm install",
   "framework": "vite",
   "rewrites": [
-    { "source": "/audio/(.*)", "destination": "https://localhost:3001/audio/$1" },
-    { "source": "/api/(.*)", "destination": "https://localhost:3001/api/$1" },
+    { "source": "/audio/(.*)", "destination": "http://localhost:3001/audio/$1" },
+    { "source": "/api/(.*)", "destination": "http://localhost:3001/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

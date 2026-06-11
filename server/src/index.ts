@@ -16,28 +16,13 @@ app.use(express.json());
 const clientDist = path.join(__dirname, "..", "..", "client", "dist");
 app.use(express.static(clientDist));
 
-// Audio proxy to MinIO
-app.use("/audio", async (req, res) => {
-  const audioPath = req.path; // e.g. /brandenburger-tor_de.mp3
-  try {
-    const minioUrl = `http://localhost:9000/audio${audioPath}`;
-    const response = await fetch(minioUrl);
-    if (response.ok) {
-      res.setHeader("Content-Type", "audio/mpeg");
-      res.setHeader("Cache-Control", "public, max-age=86400");
-      response.body?.pipeTo(
-        new WritableStream({
-          write(chunk) { res.write(chunk); },
-          close() { res.end(); },
-        })
-      );
-    } else {
-      res.redirect(minioUrl);
-    }
-  } catch {
-    res.redirect(`http://localhost:9000/audio${audioPath}`);
+// Serve audio files from local filesystem (no MinIO dependency)
+const audioDir = path.join(__dirname, "..", "audio");
+app.use("/audio", express.static(audioDir, {
+  setHeaders: (res) => {
+    res.setHeader("Cache-Control", "public, max-age=86400");
   }
-});
+}));
 
 // API routes
 app.use("/api", routesRouter);
