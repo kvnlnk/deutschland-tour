@@ -34,8 +34,7 @@ export default function PricingSection({ onStartFreeTour }: PricingSectionProps)
                 <span className="pricing-amount">€0</span>
               </div>
               <p className="pricing-desc">
-                Historischer Rundgang durch Berlin – 9 Stationen, 4,2 km.
-                Perfekt für einen ersten Eindruck.
+                Historischer Rundgang – 9 Stationen, 4,2 km.
               </p>
             </div>
             <ul className="pricing-features">
@@ -54,7 +53,7 @@ export default function PricingSection({ onStartFreeTour }: PricingSectionProps)
             city="München"
             routeId="muenchen-altstadt"
             priceCents={PRICING.singleTour}
-            description="Bayerische Geschichte & Bierkultur – 9 Stationen durch die Altstadt."
+            description="Bayerische Geschichte &amp; Bierkultur – 9 Stationen."
             features={[
               "9 Audio-Stationen (DE/EN)",
               "GPS-gesteuerte Wiedergabe",
@@ -71,7 +70,7 @@ export default function PricingSection({ onStartFreeTour }: PricingSectionProps)
             city="Hamburg"
             routeId="hamburg-hafen"
             priceCents={PRICING.singleTour}
-            description="Hafen & hanseatische Geschichte – 9 Stationen, 3,5 km."
+            description="Hafen &amp; hanseatische Geschichte – 9 Stationen."
             features={[
               "9 Audio-Stationen (DE/EN)",
               "GPS-gesteuerte Wiedergabe",
@@ -87,52 +86,62 @@ export default function PricingSection({ onStartFreeTour }: PricingSectionProps)
         {/* Bundle Options */}
         <div className="pricing-bundles">
           <h3 className="pricing-bundles-title">Paket-Angebote</h3>
+
           <div className="pricing-bundles-grid">
-            <div className={`pricing-bundle-card ${purchasedTours.has("city-bundle") ? "pricing-bundle-card--owned" : ""}`}>
+            {/* City Bundle */}
+            <div
+              className={`pricing-bundle-card ${purchasedTours.has("city-bundle") ? "pricing-bundle-card--owned" : ""}`}
+            >
               <div className="pricing-bundle-label">BELIEBT</div>
-              <h4>Städte-Bundle</h4>
-              <p className="pricing-bundle-desc">
-                Alle Touren einer Stadt zum Vorzugspreis. Stadt wechselbar.
-              </p>
-              <div className="pricing-bundle-price">{formatPrice(PRICING.cityBundle)}</div>
-              {purchasedTours.has("city-bundle") ? (
-                <div className="pricing-owned-badge">✓ Besitzte</div>
-              ) : (
-                <button
-                  className="btn btn-primary pricing-btn"
-                  onClick={() => purchaseBundle("city-bundle")}
-                  disabled={loading}
-                >
-                  Bundle sichern
-                </button>
-              )}
+              <div className="pricing-bundle-inner">
+                <h4>Städte-Bundle</h4>
+                <p className="pricing-bundle-desc">
+                  Alle Touren einer Stadt zum Vorzugspreis.
+                </p>
+                <div className="pricing-bundle-price">{formatPrice(PRICING.cityBundle)}</div>
+                {purchasedTours.has("city-bundle") ? (
+                  <div className="pricing-owned-badge">✓ Besitzt du</div>
+                ) : (
+                  <button
+                    className="btn btn-primary pricing-btn"
+                    onClick={() => purchaseBundle("city-bundle")}
+                    disabled={loading}
+                  >
+                    Bundle sichern
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className={`pricing-bundle-card pricing-bundle-card--premium ${purchasedTours.has("all-access") ? "pricing-bundle-card--owned" : ""}`}>
+            {/* All Access */}
+            <div
+              className={`pricing-bundle-card pricing-bundle-card--premium ${purchasedTours.has("all-access") ? "pricing-bundle-card--owned" : ""}`}
+            >
               <div className="pricing-bundle-label">BESTER WERT</div>
-              <h4>All Access</h4>
-              <p className="pricing-bundle-desc">
-                Alle Touren. Alle Städte. Alle zukünftigen Routen. Für immer.
-              </p>
-              <div className="pricing-bundle-price">{formatPrice(PRICING.allAccess)}</div>
-              {purchasedTours.has("all-access") ? (
-                <div className="pricing-owned-badge">✓ Aktiv</div>
-              ) : (
-                <button
-                  className="btn btn-primary pricing-btn"
-                  onClick={() => purchaseBundle("all-access")}
-                  disabled={loading}
-                >
-                  Alle freischalten
-                </button>
-              )}
+              <div className="pricing-bundle-inner">
+                <h4>All Access</h4>
+                <p className="pricing-bundle-desc">
+                  Alle Touren – jetzt und in Zukunft. Für immer.
+                </p>
+                <div className="pricing-bundle-price">{formatPrice(PRICING.allAccess)}</div>
+                {purchasedTours.has("all-access") ? (
+                  <div className="pricing-owned-badge pricing-owned-badge--light">✓ Aktiv</div>
+                ) : (
+                  <button
+                    className="btn btn-primary pricing-btn"
+                    onClick={() => purchaseBundle("all-access")}
+                    disabled={loading}
+                  >
+                    Alle freischalten
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         <p className="pricing-note">
           🔒 Sichere Zahlung per Stripe. Keine versteckten Kosten.
-          Zufriedenheit garantiert oder Geld zurück.
         </p>
       </div>
     </section>
@@ -150,7 +159,16 @@ interface PricingCardProps {
   loading: boolean;
 }
 
-function PricingCard({ city, routeId, priceCents, description, features, onPurchase, hasAccess, loading }: PricingCardProps) {
+function PricingCard({
+  city,
+  routeId,
+  priceCents,
+  description,
+  features,
+  onPurchase,
+  hasAccess,
+  loading,
+}: PricingCardProps) {
   const formatPrice = (cents: number) => `€${(cents / 100).toFixed(2)}`;
 
   return (
