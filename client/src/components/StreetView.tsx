@@ -6,9 +6,6 @@ interface StreetViewProps {
   name: string;
 }
 
-// Token injected via VITE_MAPILLARY_TOKEN at build time
-// See .env.example for setup
-
 export default function StreetView({ lat, lng, name }: StreetViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
@@ -17,12 +14,19 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
   useEffect(() => {
     if (!token || !containerRef.current) return;
 
+    // Load Mapillary CSS
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/mapillary-js@4.1/dist/mapillary.css";
+    document.head.appendChild(link);
+
+    // Load Mapillary JS library
     const script = document.createElement("script");
-    script.src = "https://unpkg.com/mapillary-js@4.1/dist/mapillary.js";
+    script.src = "https://cdn.jsdelivr.net/npm/mapillary-js@4.1/dist/mapillary.js";
     script.onload = () => {
-      if (!containerRef.current) return;
-      const { Viewer } = (window as any).mapillary;
+      if (!containerRef.current || viewerRef.current) return;
       try {
+        const Viewer = (window as any).mapillary.Viewer;
         const viewer = new Viewer({
           accessToken: token,
           container: containerRef.current,
@@ -31,33 +35,42 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
         viewerRef.current = viewer;
       } catch (e) {
         console.warn("Mapillary viewer error:", e);
+        // Show error in UI
+        const el = containerRef.current;
+        if (el) {
+          el.innerHTML = `<div style="height:200px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--color-text-muted);font-size:0.85rem;border:1px dashed var(--color-border);border-radius:12px">
+            🌍 Street View nicht verfügbar<br/>
+            <span style="font-size:0.75rem">Kein Panorama-Bild an dieser Position</span>
+          </div>`;
+        }
+      }
+    };
+    script.onerror = () => {
+      const el = containerRef.current;
+      if (el) {
+        el.innerHTML = `<div style="height:200px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--color-text-muted);font-size:0.85rem;border:1px dashed var(--color-border);border-radius:12px">
+          📷 Street View Bibliothek konnte nicht geladen werden
+        </div>`;
       }
     };
     document.head.appendChild(script);
-
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/mapillary-js@4.1/dist/mapillary.css";
-    document.head.appendChild(link);
 
     return () => {
       if (viewerRef.current) {
         viewerRef.current.remove();
         viewerRef.current = null;
       }
-      script.remove();
       link.remove();
+      script.remove();
     };
   }, [lat, lng, token]);
 
   if (!token) {
     return (
       <div className="street-view street-view--missing">
-        <div className="street-view-header">
-          📷 Street View – {name}
-        </div>
-        <div className="street-view-placeholder">
-          <p>🌍 Street View kommt später</p>
+        <div className="street-view-header">📷 Street View – {name}</div>
+        <div className="street-view-placeholder" style={{ height: "200px" }}>
+          <p>🌍 Kein Mapillary-Token konfiguriert</p>
           <p className="street-view-hint">
             Setze <code>VITE_MAPILLARY_TOKEN</code> in der <code>.env</code>
           </p>
@@ -68,9 +81,7 @@ export default function StreetView({ lat, lng, name }: StreetViewProps) {
 
   return (
     <div className="street-view">
-      <div className="street-view-header">
-        📷 Street View – {name}
-      </div>
+      <div className="street-view-header">📷 Street View – {name}</div>
       <div ref={containerRef} className="street-view-container" />
       <p className="street-view-note">🖱️ Ziehen zum umschauen • Mapillary</p>
     </div>
