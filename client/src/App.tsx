@@ -12,6 +12,7 @@ import { useFavorites } from "./hooks/useFavorites";
 import { useCustomRoutes } from "./hooks/useCustomRoutes";
 import type { CustomRoute } from "./hooks/useCustomRoutes";
 import CustomRoutesPage from "./components/CustomRoutesPage";
+import BaukastenPage from "./components/BaukastenPage";
 import RouteEditor from "./components/RouteEditor";
 import {
   mergeRoutes,
@@ -23,7 +24,7 @@ import type { Route } from "./types";
 
 const TourView = lazy(() => import("./components/TourView"));
 
-type Page = "home" | "tours" | "pricing" | "about" | "tour" | "custom";
+type Page = "home" | "tours" | "pricing" | "about" | "tour" | "custom" | "baukasten";
 
 const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic", "koeln-classic", "dresden-classic", "heidelberg-preview"];
 
@@ -98,7 +99,7 @@ export function AppContent() {
     })();
 
   const navigate = (p: string) => {
-    if (p === "home" || p === "tours" || p === "pricing" || p === "about" || p === "custom") {
+    if (p === "home" || p === "tours" || p === "pricing" || p === "about" || p === "custom" || p === "baukasten") {
       setPage(p as Page);
       if (p !== "custom") setShowEditor(false);
     }
@@ -502,6 +503,9 @@ export function AppContent() {
           />
         </div>
       )}
+
+      {/* === BAUKASTEN PAGE === */}
+      {page === "baukasten" && <BaukastenPage />}
 
       {/* === TOUR VIEW === */}
       {page === "tour" && selectedRoute && (
