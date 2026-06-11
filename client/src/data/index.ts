@@ -3,6 +3,7 @@ import { berlinClassicRoute } from "./berlin";
 import { muenchenAltstadt } from "./muenchen";
 import { hamburgHafen } from "./hamburg";
 
+// Static fallback data
 export const routes: Route[] = [
   berlinClassicRoute,
   muenchenAltstadt,
@@ -20,7 +21,16 @@ export function getRoutesByCity(city: string): Route[] {
 export const CITIES = Array.from(new Set(routes.map((r) => r.city)));
 
 export const PRICING = {
-  singleTour: 499,     // €4.99 per tour
-  cityBundle: 1499,    // €14.99 all tours in one city
-  allAccess: 2999,     // €29.99 all tours forever
+  singleTour: 499,
+  cityBundle: 1499,
+  allAccess: 2999,
 };
+
+// API fetcher – fetches additional routes from server
+// const API_BASE = "";
+// export async function fetchApiRoutes(): Promise<Route[]> {
+//   const res = await fetch(`${API_BASE}/api/routes`);
+//   if (!res.ok) return [];
+//   const data = await res.json();
+//   return data.routes || [];
+// }
