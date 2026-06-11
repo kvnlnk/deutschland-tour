@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import NavBar from "./components/NavBar";
 import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
@@ -9,6 +9,10 @@ import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
 import { useDarkMode } from "./hooks/useDarkMode";
 import { useFavorites } from "./hooks/useFavorites";
+import { useCustomRoutes } from "./hooks/useCustomRoutes";
+import type { CustomRoute } from "./hooks/useCustomRoutes";
+import CustomRoutesPage from "./components/CustomRoutesPage";
+import RouteEditor from "./components/RouteEditor";
 import {
   mergeRoutes,
   getRouteById,
@@ -19,7 +23,7 @@ import type { Route } from "./types";
 
 const TourView = lazy(() => import("./components/TourView"));
 
-type Page = "home" | "tours" | "pricing" | "about" | "tour";
+type Page = "home" | "tours" | "pricing" | "about" | "tour" | "custom";
 
 const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic", "koeln-classic", "dresden-classic", "heidelberg-preview"];
 
@@ -28,9 +32,41 @@ export function AppContent() {
   const [selectedRouteId, setSelectedRouteId] = useState<string>("berlin-classic");
   const [apiReady, setApiReady] = useState(false);
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
+  const [virtualMode, setVirtualMode] = useState(false);
   const { dark, toggle: toggleDark } = useDarkMode();
   const { hasAccess, purchaseTour, loading } = usePurchase();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { routes: customRoutes, addRoute } = useCustomRoutes();
+  const [showEditor, setShowEditor] = useState(false);
+
+  // Helper: convert CustomRoute to Route format for the tour viewer
+  const customRouteToRoute = useCallback((cr: CustomRoute): Route => ({
+    id: cr.id,
+    city: cr.city,
+    name: cr.name,
+    nameEn: cr.name,
+    description: cr.description,
+    descriptionEn: cr.description,
+    imageUrl: "",
+    durationMinutes: cr.pois.length * 10,
+    distanceKm: 0,
+    priceCents: 0,
+    tags: ["custom"],
+    pois: cr.pois.map((p) => ({
+      id: p.id,
+      name: p.name,
+      nameEn: p.name,
+      description: p.description,
+      descriptionEn: p.description,
+      lat: p.lat,
+      lng: p.lng,
+      order: p.order,
+      imageUrl: "",
+      duration: 10,
+      audioDe: "",
+      audioEn: "",
+    })),
+  }), []);
 
   // Load from API on mount
   useEffect(() => {
@@ -54,17 +90,31 @@ export function AppContent() {
 
   const routes = getRoutes();
   const stats = getStats();
-  const selectedRoute = getRouteById(selectedRouteId);
+  const selectedRoute =
+    getRouteById(selectedRouteId) ??
+    (() => {
+      const cr = customRoutes.find((r) => r.id === selectedRouteId);
+      return cr ? customRouteToRoute(cr) : undefined;
+    })();
 
   const navigate = (p: string) => {
-    if (p === "home" || p === "tours" || p === "pricing" || p === "about") {
-      setPage(p);
+    if (p === "home" || p === "tours" || p === "pricing" || p === "about" || p === "custom") {
+      setPage(p as Page);
+      if (p !== "custom") setShowEditor(false);
     }
   };
 
   const startTour = (routeId: string) => {
     setPreviewRoute(null);
     setSelectedRouteId(routeId);
+    setVirtualMode(false);
+    setPage("tour");
+  };
+
+  const startVirtualTour = (routeId: string) => {
+    setPreviewRoute(null);
+    setSelectedRouteId(routeId);
+    setVirtualMode(true);
     setPage("tour");
   };
 
@@ -148,6 +198,16 @@ export function AppContent() {
             </span>
           )}
         </div>
+        {canStart && !isComingSoon && (
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+            <button className="btn btn-primary pricing-btn-sm" onClick={(e) => { e.stopPropagation(); startTour(route.id); }}>
+              🎧 GPS-Tour
+            </button>
+            <button className="btn pricing-btn-sm" style={{ color: "var(--color-text)", border: "1px solid var(--color-border)", background: "transparent" }} onClick={(e) => { e.stopPropagation(); startVirtualTour(route.id); }}>
+              🖥️ Virtuell
+            </button>
+          </div>
+        )}
         {!canStart && !isComingSoon && (
           <button
             className="btn btn-accent pricing-btn-sm"
@@ -425,6 +485,24 @@ export function AppContent() {
         </div>
       )}
 
+      {/* === CUSTOM ROUTES PAGE === */}
+      {page === "custom" && !showEditor && (
+        <CustomRoutesPage
+          onStartCustomTour={(routeId) => startTour(routeId)}
+          onNewRoute={() => setShowEditor(true)}
+        />
+      )}
+
+      {/* === CUSTOM ROUTE EDITOR === */}
+      {page === "custom" && showEditor && (
+        <div style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "2rem 1.5rem" }}>
+          <RouteEditor
+            onSave={() => setShowEditor(false)}
+            onCancel={() => setShowEditor(false)}
+          />
+        </div>
+      )}
+
       {/* === TOUR VIEW === */}
       {page === "tour" && selectedRoute && (
         <Suspense fallback={
@@ -438,6 +516,7 @@ export function AppContent() {
             routeId={selectedRoute.id}
             routeName={selectedRoute.name}
             onBack={() => setPage("home")}
+            virtual={virtualMode}
           />
         </Suspense>
       )}
