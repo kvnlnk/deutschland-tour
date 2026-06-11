@@ -3,7 +3,6 @@ import RouteMap from "./RouteMap";
 import POICard from "./POICard";
 import AudioPlayer from "./AudioPlayer";
 import TourCompletion from "./TourCompletion";
-import StreetView from "./StreetView";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { useProximityTracker } from "../hooks/useProximityTracker";
@@ -205,14 +204,14 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
         </div>
       )}
 
-      {/* Map — always visible in virtual mode */}
-      {(view === "map" || virtual) && (
+      {/* Map */}
+      {view === "map" && (
         <div className="tour-map-section">
           <RouteMap
-            pois={virtual ? (currentVirtualPoi ? sortedPois : []) : sortedPois}
+            pois={sortedPois}
             userLat={userLat}
             userLng={userLng}
-            activePoiId={virtual ? currentVirtualPoi?.id || null : activePoiId}
+            activePoiId={activePoiId}
             visitedPoiIds={allVisitedPoiIds}
             language={language}
             onPoiClick={(id) => {
@@ -291,11 +290,6 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
             </div>
           </div>
         </div>
-        <StreetView
-          lat={currentVirtualPoi.lat}
-          lng={currentVirtualPoi.lng}
-          name={language === "de" ? currentVirtualPoi.name : currentVirtualPoi.nameEn}
-        />
         </>
       )}
 
