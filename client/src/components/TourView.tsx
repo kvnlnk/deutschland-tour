@@ -240,57 +240,59 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
         <div className="virtual-poi-view">
           {virtualPoiIndex === 0 && (
             <p style={{ textAlign: "center", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "0.75rem" }}>
-              👆 Tippe auf ▶️ um das Audio abzuspielen, oder navigiere mit ← →
+              👆 Tippe auf ▶️ für Audioguide, ← → für nächste Station
             </p>
           )}
           <div className="virtual-poi-nav">
             <button className="btn btn-sm btn-outline" onClick={goPrev}
               disabled={virtualPoiIndex === 0}>
-              ← Vorherige
+              ←
             </button>
-            <span style={{
-              fontSize: "0.85rem", fontWeight: 600,
-              color: "var(--color-primary)"
-            }}>
+            <span className="virtual-poi-counter">
               {virtualPoiIndex + 1} / {sortedPois.length}
             </span>
             <button className="btn btn-sm btn-outline" onClick={goNext}
               disabled={virtualPoiIndex >= sortedPois.length - 1}>
-              Nächste →
+              →
             </button>
           </div>
 
           <div className="virtual-poi-card">
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", marginBottom: "0.5rem" }}>
-              {language === "de" ? currentVirtualPoi.name : currentVirtualPoi.nameEn}
-            </h3>
-            {currentVirtualPoi.imageUrl && (
-              <img src={currentVirtualPoi.imageUrl} alt={currentVirtualPoi.name}
-                style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px", marginBottom: "0.75rem" }} />
-            )}
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.7, color: "var(--color-text)" }}>
-              {language === "de" ? currentVirtualPoi.description : currentVirtualPoi.descriptionEn}
-            </p>
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="virtual-poi-image-wrapper">
+              {currentVirtualPoi.imageUrl && (
+                <img src={currentVirtualPoi.imageUrl} alt={currentVirtualPoi.name}
+                  className="virtual-poi-image" />
+              )}
+              <div className="virtual-poi-image-overlay">
+                <h3 className="virtual-poi-name">
+                  {language === "de" ? currentVirtualPoi.name : currentVirtualPoi.nameEn}
+                </h3>
+              </div>
+            </div>
+            <div className="virtual-poi-content">
+              <p className="virtual-poi-description">
+                {language === "de" ? currentVirtualPoi.description : currentVirtualPoi.descriptionEn}
+              </p>
               <button
-                className={`btn btn-sm ${audio.isPlaying && audio.currentAudio === (language === "de" ? currentVirtualPoi.audioDe : currentVirtualPoi.audioEn) ? "btn-playing" : "btn-audio"}`}
+                className={`btn ${audio.isPlaying && audio.currentAudio === (language === "de" ? currentVirtualPoi.audioDe : currentVirtualPoi.audioEn) ? "btn-playing" : "btn-audio"} virtual-poi-play`}
                 onClick={() => handlePoiPlay(currentVirtualPoi)}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                   {audio.isPlaying && audio.currentAudio === (language === "de" ? currentVirtualPoi.audioDe : currentVirtualPoi.audioEn) ? (
                     <><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></>
                   ) : (
                     <polygon points="5 3 19 12 5 21 5 3" />
                   )}
                 </svg>
-                {audio.isPlaying && audio.currentAudio === (language === "de" ? currentVirtualPoi.audioDe : currentVirtualPoi.audioEn) ? "Pause" : "Audio"}
+                {audio.isPlaying && audio.currentAudio === (language === "de" ? currentVirtualPoi.audioDe : currentVirtualPoi.audioEn) ? "Pause" : "▶️ Audio starten"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* POI List */}
+      {/* POI List — hide in virtual mode (navigation used instead) */}
+      {!virtual && (
       <div className="tour-poi-list">
         {sortedPois.map((poi) => (
           <POICard
@@ -306,6 +308,7 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
           />
         ))}
       </div>
+      )}
 
       {/* Tour Completion Modal */}
       {showCompletion && (
