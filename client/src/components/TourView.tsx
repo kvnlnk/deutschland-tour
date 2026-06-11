@@ -183,7 +183,7 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
       </header>
 
       {/* GPS Status */}
-      {showGpsPrompt && !geo.isTracking && !geo.error && (
+      {!virtual && showGpsPrompt && !geo.isTracking && !geo.error && (
         <div className="gps-prompt">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z" />
@@ -238,6 +238,11 @@ export default function TourView({ pois, routeId, routeName, onBack, virtual = f
       {/* Virtual POI View */}
       {virtual && currentVirtualPoi && (
         <div className="virtual-poi-view">
+          {virtualPoiIndex === 0 && (
+            <p style={{ textAlign: "center", fontSize: "0.85rem", color: "var(--color-text-muted)", marginBottom: "0.75rem" }}>
+              👆 Tippe auf ▶️ um das Audio abzuspielen, oder navigiere mit ← →
+            </p>
+          )}
           <div className="virtual-poi-nav">
             <button className="btn btn-sm btn-outline" onClick={goPrev}
               disabled={virtualPoiIndex === 0}>
