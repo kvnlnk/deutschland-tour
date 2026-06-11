@@ -297,7 +297,6 @@ export function AppContent() {
               <div className="footer-links">
                 <button className="footer-link" onClick={() => setPage("about")}>Über uns</button>
                 <button className="footer-link" onClick={() => setPage("tours")}>Touren</button>
-                <button className="footer-link" onClick={() => setPage("pricing")}>Preise</button>
               </div>
             </div>
             <div className="footer-bottom">
@@ -379,7 +378,6 @@ export function AppContent() {
               </div>
               <div className="footer-links">
                 <button className="footer-link" onClick={() => setPage("about")}>Über uns</button>
-                <button className="footer-link" onClick={() => setPage("pricing")}>Preise</button>
               </div>
             </div>
             <div className="footer-bottom">
