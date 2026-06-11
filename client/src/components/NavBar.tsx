@@ -9,7 +9,6 @@ export default function NavBar({ dark, onToggleDark, onNavigate, currentPage }: 
   const links = [
     { id: "home", label: "Start" },
     { id: "tours", label: "Touren" },
-    { id: "baukasten", label: "🧩 Baukasten" },
     { id: "custom", label: "Meine Touren" },
     { id: "pricing", label: "Preise" },
     { id: "about", label: "Über uns" },
