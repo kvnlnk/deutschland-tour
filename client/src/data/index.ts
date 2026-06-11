@@ -34,7 +34,10 @@ export function mergeRoutes(apiRoutes: Route[]): Route[] {
 
   mergedRoutes = apiRoutes.map((apiRoute) => {
     const fallback = fallbackMap.get(apiRoute.id);
-    if (!fallback) return apiRoute; // New city from API
+    if (!fallback) {
+      // Free for all
+      return { ...apiRoute, priceCents: 0 };
+    }
 
     // Merge POIs: API first, fallback fills null fields
     const apiPois = apiRoute.pois.length > 0 ? apiRoute.pois : fallback.pois;
@@ -53,6 +56,7 @@ export function mergeRoutes(apiRoutes: Route[]): Route[] {
 
     return {
       ...apiRoute,
+      priceCents: 0,
       pois: mergedPois,
     };
   });
@@ -60,7 +64,7 @@ export function mergeRoutes(apiRoutes: Route[]): Route[] {
   // Add any fallback routes not in API
   for (const fb of FALLBACK_ROUTES) {
     if (!mergedRoutes.find((r) => r.id === fb.id)) {
-      mergedRoutes.push(fb);
+      mergedRoutes.push({ ...fb, priceCents: 0 });
     }
   }
 

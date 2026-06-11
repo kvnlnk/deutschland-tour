@@ -135,40 +135,19 @@ export function AppContent() {
     </>
   );
 
-  const CityCard = ({ route, canStart, owned, isFree }: {
-    route: Route; canStart: boolean; owned: boolean; isFree: boolean;
-  }) => {
-    const isComingSoon = route.tags?.includes("coming-soon");
+  const CityCard = ({ route }: { route: Route }) => {
     const fav = isFavorite(route.id);
 
     return (
     <div
-      className={`city-card ${canStart ? "" : "city-card--locked"} ${isComingSoon ? "city-card--coming-soon" : ""}`}
+      className={`city-card ${fav ? "city-card--fav" : ""}`}
       onClick={() => handleCityClick(route)}
     >
       <div className="city-card-image">
         <img src={route.imageUrl} alt={route.city} loading="lazy" />
         <div className="city-card-overlay">
-          {isComingSoon ? (
-            <span className="city-card-badge city-card-badge--coming-soon">DEMNÄCHST</span>
-          ) : isFree ? (
-            <span className="city-card-badge city-card-badge--free">KOSTENLOS</span>
-          ) : owned ? (
-            <span className="city-card-badge city-card-badge--owned">GEKAUFT</span>
-          ) : (
-            <span className="city-card-badge city-card-badge--paid">
-              €{(route.priceCents / 100).toFixed(2)}
-            </span>
-          )}
+          <span className="city-card-badge city-card-badge--free">KOSTENLOS</span>
         </div>
-        {!canStart && !loading && !isComingSoon && (
-          <div className="city-card-lock">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </div>
-        )}
         {/* Favorite toggle */}
         <button
           className={`city-card-fav ${fav ? "city-card-fav--active" : ""}`}
@@ -185,44 +164,27 @@ export function AppContent() {
         <h3 className="city-card-title">{route.city}</h3>
         <p className="city-card-desc">{route.description}</p>
         <div className="city-card-meta">
-          {!isComingSoon && (
-            <>
-              <span>🚶 {route.distanceKm} km</span>
-              <span>⏱ ~{route.durationMinutes} min</span>
-              <span>📍 {route.pois.length} Stationen</span>
-            </>
-          )}
+          <span>🚶 {route.distanceKm} km</span>
+          <span>⏱ ~{route.durationMinutes} min</span>
+          <span>📍 {route.pois.length} Stationen</span>
           {route.tags && route.tags.length > 0 && (
             <span className="city-card-tags">
-              {route.tags.slice(0, 2).filter(t => t !== "coming-soon").map(t => `#${t}`).join(" ")}
+              {route.tags.slice(0, 2).map(t => `#${t}`).join(" ")}
             </span>
           )}
         </div>
-        {canStart && !isComingSoon && (
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-            <button className="btn btn-primary pricing-btn-sm" onClick={(e) => { e.stopPropagation(); startTour(route.id); }}>
-              🎧 GPS-Tour
-            </button>
-            <button className="btn pricing-btn-sm" style={{ color: "var(--color-text)", border: "1px solid var(--color-border)", background: "transparent" }} onClick={(e) => { e.stopPropagation(); startVirtualTour(route.id); }}>
-              🖥️ Virtuell
-            </button>
-          </div>
-        )}
-        {!canStart && !isComingSoon && (
-          <button
-            className="btn btn-accent pricing-btn-sm"
-            onClick={(e) => { e.stopPropagation(); purchaseTour(route.id); }}
-            disabled={loading}
-          >
-            {loading ? "..." : `€${(route.priceCents / 100).toFixed(2)} kaufen`}
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+          <button className="btn btn-primary pricing-btn-sm" onClick={(e) => { e.stopPropagation(); startTour(route.id); }}>
+            🎧 GPS-Tour
           </button>
-        )}
-        {isComingSoon && (
-          <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.5rem" }}>🔜 In Vorbereitung</p>
-        )}
+          <button className="btn pricing-btn-sm" style={{ color: "var(--color-text)", border: "1px solid var(--color-border)", background: "transparent" }} onClick={(e) => { e.stopPropagation(); startVirtualTour(route.id); }}>
+            🖥️ Virtuell
+          </button>
+        </div>
       </div>
     </div>
-  )};
+  );
+};
 
   return (
     <div className="app">
@@ -255,6 +217,7 @@ export function AppContent() {
             onViewAllTours={() => setPage("tours")}
             dark={dark}
             onToggleDark={toggleDark}
+            stats={stats}
           />
 
           <section className="stats-section">
@@ -288,13 +251,9 @@ export function AppContent() {
               subtitle="Kostenlos starten – oder alle 6 Städte entdecken."
             />
             <div className="city-cards">
-              {routes.filter(r => FEATURED_CITIES.includes(r.id)).map((route) => {
-                const isFree = route.priceCents === 0;
-                const owned = hasAccess(route.id);
-                return (
-                  <CityCard key={route.id} route={route} canStart={isFree || owned} owned={owned} isFree={isFree} />
-                );
-              })}
+              {routes.filter(r => FEATURED_CITIES.includes(r.id)).map((route) =>
+                <CityCard key={route.id} route={route} />
+              )}
             </div>
             <div className="city-preview-footer">
               <button className="btn btn-primary" onClick={() => setPage("tours")}>
@@ -387,14 +346,9 @@ export function AppContent() {
 
           <section className="city-preview">
             <div className="city-cards">
-              {routes.map((route) => {
-                const isFree = route.priceCents === 0;
-                const owned = hasAccess(route.id);
-                const canStart = isFree || owned;
-                return (
-                  <CityCard key={route.id} route={route} canStart={canStart} owned={owned} isFree={isFree} />
-                );
-              })}
+              {routes.map((route) =>
+                <CityCard key={route.id} route={route} />
+              )}
             </div>
           </section>
 

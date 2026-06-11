@@ -4,9 +4,11 @@ interface HeroProps {
   onViewAllTours?: () => void;
   dark?: boolean;
   onToggleDark?: () => void;
+  stats?: { pois: number; distance: string; cities: number; languages: number };
 }
 
-export default function Hero({ onStartTour, onLearnMore, onViewAllTours, dark, onToggleDark }: HeroProps) {
+export default function Hero({ onStartTour, onLearnMore, onViewAllTours, dark, onToggleDark, stats }: HeroProps) {
+  const s = stats || { pois: 0, distance: "0", cities: 0, languages: 2 };
   return (
     <section className="hero" id="hero">
       <div className="hero-bg" />
@@ -41,15 +43,15 @@ export default function Hero({ onStartTour, onLearnMore, onViewAllTours, dark, o
         </div>
         <div className="hero-stats">
           <div className="hero-stat">
-            <span className="hero-stat-value">7</span>
+            <span className="hero-stat-value">{s.cities}</span>
             <span className="hero-stat-label">Städte</span>
           </div>
           <div className="hero-stat">
-            <span className="hero-stat-value">63</span>
+            <span className="hero-stat-value">{s.pois}</span>
             <span className="hero-stat-label">Stationen</span>
           </div>
           <div className="hero-stat">
-            <span className="hero-stat-value">2</span>
+            <span className="hero-stat-value">{s.languages}</span>
             <span className="hero-stat-label">Sprachen</span>
           </div>
           <div className="hero-stat">
