@@ -2,12 +2,18 @@ import { Route } from "../types";
 import { berlinClassicRoute } from "./berlin";
 import { muenchenAltstadt } from "./muenchen";
 import { hamburgHafen } from "./hamburg";
+import { koelnClassicRoute } from "./koeln";
+import { dresdenClassicRoute } from "./dresden";
+import { heidelbergPreviewRoute } from "./heidelberg";
 
 // Static fallback data
 export const FALLBACK_ROUTES: Route[] = [
   berlinClassicRoute,
   muenchenAltstadt,
   hamburgHafen,
+  koelnClassicRoute,
+  dresdenClassicRoute,
+  heidelbergPreviewRoute,
 ];
 
 // Merged routes (API + fallback)
