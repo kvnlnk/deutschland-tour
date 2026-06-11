@@ -17,7 +17,7 @@ Explore Berlin, Munich, Hamburg, Cologne, Dresden, Heidelberg, and Frankfurt wit
 - **🔍 Search** — Find tours by city or tag
 - **💬 Reviews** — Read and leave ratings for tours
 - **🌙 Dark Mode** — Toggle between light and dark themes
-- **💰 Pay-What-You-Can** — Berlin is free; other cities available as single purchases or bundles (Stripe demo)
+- **💯 Completely Free** — All tours, all features, no hidden costs
 - **📱 PWA Ready** — Installable service worker for offline-capable experience
 - **🚫 No Account Required** — Start immediately, no signup
 
@@ -25,15 +25,15 @@ Explore Berlin, Munich, Hamburg, Cologne, Dresden, Heidelberg, and Frankfurt wit
 
 ## 🏙️ Available Tours
 
-| City          | Route                     | Distance | Duration | Price |
-|---------------|---------------------------|----------|----------|-------|
-| Berlin        | Historical Walk           | 4.2 km   | ~120 min | 🆓 Free |
-| München       | Old Town & Culture        | 3.1 km   | ~90 min  | €4.99 |
-| Hamburg       | Harbor & History          | 3.5 km   | ~100 min | €4.99 |
-| Köln          | Cathedral & Old Town      | 2.8 km   | ~80 min  | €4.99 |
-| Dresden       | Altstadt & Baroque        | 3.0 km   | ~90 min  | €4.99 |
-| Heidelberg    | Schloss & Altstadt        | TBD      | TBD      | 🔜 Coming Soon |
-| Frankfurt     | Main & Skyline            | TBD      | TBD      | 🔜 Coming Soon |
+| City          | Route                     | Distance | Duration |
+|---------------|---------------------------|----------|----------|
+| Berlin        | Historical Walk           | 4.2 km   | ~120 min |
+| München       | Old Town & Culture        | 3.1 km   | ~90 min  |
+| Hamburg       | Harbor & History          | 3.5 km   | ~100 min |
+| Köln          | Cathedral & Old Town      | 2.8 km   | ~80 min  |
+| Dresden       | Altstadt & Baroque        | 3.0 km   | ~90 min  |
+| Heidelberg    | Schloss & Altstadt        | TBD      | TBD      |
+| Frankfurt     | Main & Skyline            | TBD      | TBD      |
 
 ---
 
@@ -133,7 +133,7 @@ sequenceDiagram
 | tsx         | Dev runner (watch mode)  |
 | PostgreSQL  | Primary database         |
 | pg          | PostgreSQL client        |
-| Stripe      | Payment processing (demo)|
+| Stripe      | Payment processing (legacy, disabled)|
 | MinIO       | S3-compatible file storage for audio/images |
 
 ### Infrastructure
@@ -236,7 +236,7 @@ deutschland-tour/
 │   │   │   ├── useProximityTracker.ts # GPS proximity detection
 │   │   │   ├── useTourProgress.ts   # Tour completion tracking
 │   │   │   ├── useFavorites.ts      # Tour favorites (localStorage)
-│   │   │   ├── usePurchase.tsx      # Purchase flow context
+│   │   │   ├── usePurchase.tsx      # Purchase flow (legacy)
 │   │   │   ├── useDarkMode.ts       # Theme toggling
 │   │   │   ├── useCustomRoutes.ts   # Custom route CRUD
 │   │   │   └── useBaukasten.ts      # Route builder state
@@ -331,7 +331,7 @@ Recommended setup:
 | GET    | `/api/routes/:id`             | Get route with full POIs  |
 | GET    | `/api/reviews/:routeId`       | Get reviews for a route   |
 | POST   | `/api/reviews`                | Submit a review           |
-| POST   | `/api/create-checkout-session`| Create Stripe checkout    |
+| POST   | `/api/create-checkout-session`| Stripe checkout (legacy)  |
 | POST   | `/api/purchases`              | Log a purchase            |
 | GET    | `/api/health`                 | Health check              |
 
