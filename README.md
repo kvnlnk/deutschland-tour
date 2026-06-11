@@ -44,8 +44,7 @@ flowchart TD
     User([User/Browser]) --> Vercel[Vercel CDN<br/>client/dist SPA]
 
     subgraph Vercel [Vercel Deployment]
-        VercelSPA["React SPA<br/>(Built client/dist)"]
-        VercelRewrites["Rewrite Rules<br/>/api/* → Express<br/>/audio/* → Express"]
+        RewriteRules["Rewrite Rules<br/>/api/* → Express<br/>/audio/* → Express"]
     end
 
     subgraph ExpressServer [Express Backend — host:3001]
@@ -60,36 +59,9 @@ flowchart TD
         MinIO[("MinIO<br/>S3-compatible storage<br/>audio + images")]
     end
 
-    subgraph FrontendApp [React Application]
-        NavBar["NavBar"]
-        Hero["Hero"]
-        Pricing["PricingSection"]
-        TourView["TourView<br/>Lazy loaded"]
-        RouteMap["RouteMap<br/>Leaflet + OSM"]
-        AudioPlayer["AudioPlayer"]
-        POICard["POICard"]
-        Baukasten["BaukastenPage<br/>Route Builder"]
-        RouteEditor["RouteEditor"]
-        CustomRoutes["CustomRoutesPage"]
-        SearchBar["SearchBar"]
-        Reviews["ReviewSection"]
-        TourCompletion["TourCompletion"]
-        FavoriteHook["useFavorites"]
-        PurchaseHook["usePurchase"]
-        GeoHook["useGeolocation"]
-        AudioHook["useAudioPlayer"]
-        ProximityHook["useProximityTracker"]
-        ProgressHook["useTourProgress"]
-        DarkModeHook["useDarkMode"]
-        BaukastenHook["useBaukasten"]
-        ErrorBoundary["ErrorBoundary"]
-        ServiceWorker["Service Worker<br/>sw.js"]
-    end
-
     User --> Vercel
-    Vercel --> VercelRewrites
-    VercelRewrites --> ExpressServer
-    VercelSPA --> FrontendApp
+    Vercel --> RewriteRules
+    RewriteRules --> ExpressServer
 
     Express --> APIRoutes
     Express --> AudioServe
@@ -97,31 +69,6 @@ flowchart TD
 
     APIRoutes --> PostgreSQL
     APIRoutes --> MinIO
-
-    TourView --> RouteMap
-    TourView --> AudioPlayer
-    TourView --> POICard
-    TourView --> TourCompletion
-    TourView --> GeoHook
-    TourView --> AudioHook
-    TourView --> ProximityHook
-    TourView --> ProgressHook
-
-    FrontendApp --> NavBar
-    FrontendApp --> Hero
-    FrontendApp --> Pricing
-    FrontendApp --> TourView
-    FrontendApp --> Baukasten
-    FrontendApp --> RouteEditor
-    FrontendApp --> CustomRoutes
-    FrontendApp --> SearchBar
-    FrontendApp --> Reviews
-    FrontendApp --> DarkModeHook
-    FrontendApp --> FavoriteHook
-    FrontendApp --> PurchaseHook
-    FrontendApp --> BaukastenHook
-    FrontendApp --> ErrorBoundary
-    FrontendApp --> ServiceWorker
 ```
 
 ### Data Flow
