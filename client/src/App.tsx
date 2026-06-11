@@ -3,6 +3,7 @@ import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
 import FAQSection from "./components/FAQSection";
 import SearchBar from "./components/SearchBar";
+import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
 import { routes, getRouteById } from "./data";
 
