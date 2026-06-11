@@ -26,7 +26,7 @@ export const heidelbergPreviewRoute: Route = {
       lat: 49.41,
       lng: 8.7156,
       order: 1,
-      imageUrl: "",
+      imageUrl: "https://images.unsplash.com/photo-1568889531942-0e428a2edbfe?w=600&q=80",
       duration: 15,
       audioDe: "/audio/heidelberg-schloss_de.mp3",
       audioEn: "/audio/heidelberg-schloss_en.mp3",
@@ -42,7 +42,7 @@ export const heidelbergPreviewRoute: Route = {
       lat: 49.414,
       lng: 8.7099,
       order: 2,
-      imageUrl: "",
+      imageUrl: "https://images.unsplash.com/photo-1568889531942-0e428a2edbfe?w=600&q=80",
       duration: 10,
       audioDe: "/audio/heidelberg-alte-bruecke_de.mp3",
       audioEn: "/audio/heidelberg-alte-bruecke_en.mp3",
@@ -58,7 +58,7 @@ export const heidelbergPreviewRoute: Route = {
       lat: 49.4122,
       lng: 8.7101,
       order: 3,
-      imageUrl: "",
+      imageUrl: "https://images.unsplash.com/photo-1568889531942-0e428a2edbfe?w=600&q=80",
       duration: 10,
       audioDe: "/audio/heidelberg-marktplatz_de.mp3",
       audioEn: "/audio/heidelberg-marktplatz_en.mp3",
@@ -74,12 +74,13 @@ export const heidelbergPreviewRoute: Route = {
       lat: 49.4172,
       lng: 8.7069,
       order: 4,
-      imageUrl: "",
+      imageUrl: "https://images.unsplash.com/photo-1568889531942-0e428a2edbfe?w=600&q=80",
       duration: 12,
       audioDe: "/audio/heidelberg-philosophenweg_de.mp3",
       audioEn: "/audio/heidelberg-philosophenweg_en.mp3",
     },
   ],
 };
+
 
 
