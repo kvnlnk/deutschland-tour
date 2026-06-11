@@ -1,0 +1,10 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "http://178.254.33.96:3001/api/$1" },
+    { "source": "/audio/(.*)", "destination": "http://178.254.33.96:3001/audio/$1" }
+  ]
+}
