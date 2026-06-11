@@ -1,251 +1,225 @@
 import { useState, useMemo } from "react";
 import { useBaukasten, type BaukastenModul } from "../hooks/useBaukasten";
 
-const ICONS: Record<string, string> = {
-  stadt: "🏙️",
-  natur: "🌲",
-  kultur: "🏰",
-  kulinarik: "🍺",
-  party: "🎪",
-  abenteuer: "🧗",
-  relax: "🛀",
-  unique: "✨",
-};
+const CATEGORIES = [
+  { key: "stadt", icon: "🏙️", label: "Städte" },
+  { key: "natur", icon: "🌲", label: "Natur" },
+  { key: "kultur", icon: "🏰", label: "Kultur" },
+  { key: "kulinarik", icon: "🍺", label: "Kulinarik" },
+  { key: "abenteuer", icon: "🧗", label: "Abenteuer" },
+  { key: "party", icon: "🎪", label: "Party" },
+  { key: "relax", icon: "🛀", label: "Relax" },
+  { key: "unique", icon: "✨", label: "Unique" },
+] as const;
 
-const CAT_LABELS: Record<string, string> = {
-  stadt: "Stadt",
-  natur: "Natur",
-  kultur: "Kultur",
-  kulinarik: "Kulinarik",
-  party: "Party",
-  abenteuer: "Abenteuer",
-  relax: "Relax",
-  unique: "Unique",
-};
-
-const ALL_MODULES: BaukastenModul[] = [
-  // === STÄDTE ===
-  { id: "hamburg", title: "Hamburg", cat: "stadt", location: "Norden", desc: "Hafenstadt mit Elbphilharmonie, Speicherstadt, Szenevierteln und Nachtleben.", highlights: ["Elbphilharmonie", "Miniatur Wunderland", "Schanzenviertel", "St. Pauli"], time: "2 Tage", best: "Mai–September", emoji: "🏙️" },
-  { id: "berlin", title: "Berlin", cat: "stadt", location: "Osten", desc: "Historisch, kreativ, chaotisch — Clubkultur, Street Art, Weltgeschichte.", highlights: ["East Side Gallery", "Reichstag", "RAW-Gelände", "Markthalle Neun"], time: "2–3 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "leipzig", title: "Leipzig", cat: "stadt", location: "Osten", desc: "Unterschätzte Szene-Stadt. Industrie-Chic, Kunst, Kanäle — aufstrebend.", highlights: ["Plagwitz", "Völkerschlachtdenkmal", "Karl-Heine-Kanal", "Auenwald"], time: "1–2 Tage", best: "Frühling–Herbst", emoji: "🏙️" },
-  { id: "dresden", title: "Dresden", cat: "stadt", location: "Osten", desc: "Barocke Schönheit, Elbflorenz — Frauenkirche, Zwinger, Neustadt-Szene.", highlights: ["Frauenkirche", "Zwinger", "Neustadt", "Brühlsche Terrasse"], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "muenchen", title: "München", cat: "stadt", location: "Süden", desc: "Biergärten, Kunst, Alpenblick — Isar-Floßfahrt im Sommer!", highlights: ["Englischer Garten", "Isar-Floßfahrt", "Viktualienmarkt", "Pinakotheken"], time: "2 Tage", best: "Mai–Oktober", emoji: "🏙️" },
-  { id: "koeln", title: "Köln", cat: "stadt", location: "Westen", desc: "Domstadt mit Rheinufer, Brauhaus-Kultur und belgischem Viertel.", highlights: ["Kölner Dom", "Rheinauen", "Belgisches Viertel", "Brauhäuser"], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "bamberg", title: "Bamberg", cat: ["stadt", "kulinarik"], location: "Franken", desc: "UNESCO-Altstadt, 11 Brauereien — das Rauchbier ist legendär.", highlights: ["Rauchbier", "Klein-Venedig", "Dom", "Brauereigasthöfe"], time: "1 Tag", best: "ganzjährig", emoji: "🏘️" },
-  // === NATUR ===
-  { id: "saechsische_schweiz", title: "Sächsische Schweiz", cat: "natur", location: "Osten", desc: "Elbsandsteingebirge — Felsen, Schluchten, der Malerweg. Wie eine andere Welt.", highlights: ["Basteibrücke", "Malerweg", "Schrammsteine", "Festung Königstein"], time: "2–3 Tage", best: "April–Oktober", emoji: "🌲" },
-  { id: "schwarzwald", title: "Schwarzwald", cat: "natur", location: "Südwesten", desc: "Mittelgebirge mit dichten Wäldern, Wasserfällen und Kuckucksuhren.", highlights: ["Triberger Wasserfälle", "Schluchsee", "Feldberg", "Mummelsee"], time: "2 Tage", best: "Mai–Oktober", emoji: "🌲" },
-  { id: "berchtesgaden", title: "Berchtesgaden & Königssee", cat: "natur", location: "Süden", desc: "Türkisblauer See eingekesselt von Bergen — Norwegen-Feeling in DE.", highlights: ["Königssee", "St. Bartholomä", "Jennerbahn", "Eagle's Nest"], time: "1–2 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "mecklenburg", title: "Mecklenburgische Seenplatte", cat: "natur", location: "Norden", desc: "500+ Seen, Kanu, Stille. Dschungel-Kahn-Feeling mitten in Deutschland.", highlights: ["Kanutouren", "Müritz", "Hausboot", "Feldberger Seenlandschaft"], time: "2–4 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "spreewald", title: "Spreewald", cat: ["natur", "abenteuer"], location: "Osten", desc: "Kahnfahren durch verträumte Fließgewässer, Gurken und Biosphärenreservat.", highlights: ["Kahnfahrt", "Spreewaldgurken", "Biosphärenreservat", "Lübbenau"], time: "1–2 Tage", best: "Mai–September", emoji: "🌿" },
-  { id: "ruegen", title: "Rügen & Kreidefelsen", cat: "natur", location: "Norden (Ostsee)", desc: "Nationalpark Jasmund, weiße Kreidefelsen, Ostsee-Feeling pur.", highlights: ["Königsstuhl", "Nationalpark Jasmund", "Binz", "Kap Arkona"], time: "2 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "zugspitze", title: "Zugspitze & Garmisch", cat: "natur", location: "Süden", desc: "Deutschlands höchster Berg. Eibsee (türkis!), Partnachklamm.", highlights: ["Zugspitze", "Eibsee", "Partnachklamm", "Zahnradbahn"], time: "1 Tag", best: "Mai–Oktober", emoji: "🏔️" },
-  // === KULTUR ===
-  { id: "neuschwanstein", title: "Schloss Neuschwanstein", cat: "kultur", location: "Bayern", desc: "Das Märchenschloss. Disney-Vorlage. Tickets vorher buchen!", highlights: ["Schlossführung", "Marienbrücke", "Alpsee", "Hohenschwangau"], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
-  { id: "romantische_strasse", title: "Romantische Straße", cat: "kultur", location: "Franken→Bayern", desc: "Würzburg → Füssen. Mittelalter-Städtchen, Weinberge, Schlösser.", highlights: ["Rothenburg o.d.T.", "Würzburg Residenz", "Dinkelsbühl", "Nördlingen"], time: "2–3 Tage", best: "April–Oktober", emoji: "🏰" },
-  { id: "rheinromantik", title: "Rheinromantik", cat: "kultur", location: "Westen", desc: "Köln → Mainz: Burgen, Loreley, Weinberge und die schönste Flusslandschaft.", highlights: ["Loreley", "Marksburg", "Deutsches Eck", "Bacharach"], time: "2 Tage", best: "Mai–Oktober", emoji: "🏰" },
-  { id: "heidelberg", title: "Heidelberg", cat: "kultur", location: "Südwesten", desc: "Romantischste Altstadt Deutschlands, Schloss, Philosophenweg.", highlights: ["Heidelberger Schloss", "Altstadt", "Philosophenweg", "Alte Brücke"], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
-  // === KULINARIK ===
-  { id: "weinstrasse", title: "Deutsche Weinstraße", cat: "kulinarik", location: "Pfalz", desc: "85km Weinparadies. Riesling, Winzerdörfer, Pfälzer Küche.", highlights: ["Neustadt", "Riesling pur", "Wandern durch Weinberge", "Dürkheimer Wurstmarkt"], time: "1–2 Tage", best: "September–Oktober", emoji: "🍷" },
-  { id: "bierkultur", title: "Bierkultur-Tour", cat: "kulinarik", location: "Westen/Franken", desc: "Kölsch in Köln, Alt in Düsseldorf, Rauchbier in Bamberg — Brauereien satt.", highlights: ["Kölner Brauhäuser", "Bamberger Rauchbier", "Düsseldorf Altstadt", "Brauereibesichtigungen"], time: "2 Tage", best: "ganzjährig", emoji: "🍺" },
-  { id: "bodensee", title: "Bodensee & Wein", cat: ["kulinarik", "relax"], location: "Südwesten", desc: "Alpenpanorama, See, Insel Mainau, Obstler & Wein vom Bodensee.", highlights: ["Insel Mainau", "Lindau", "Meersburg", "Seehasen"], time: "2 Tage", best: "Mai–September", emoji: "🍷" },
-  // === ABENTEUER ===
-  { id: "nationalpark_eifel", title: "Nationalpark Eifel", cat: "abenteuer", location: "Westen", desc: "85km Wildnis-Trail, Kletterwald, Stauseen — Deutschlands Wilder Westen.", highlights: ["Wildnis-Trail", "Kletterwald", "Rurseeregion", "NS-Ordensburg Vogelsang"], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
-  { id: "harz", title: "Harz & Brocken", cat: "abenteuer", location: "Zentrum", desc: "Brocken-Besteigung, Dampflok, Moore, Klippen — deutscher Mittelgebirgs-Klassiker.", highlights: ["Brocken", "Dampflok", "Wollgrasmoore", "Schnarcherklippen"], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
-  // === PARTY ===
-  { id: "berlin_clubs", title: "Berliner Clubkultur", cat: "party", location: "Berlin", desc: "Berghain, ://about blank, Sisyphos, RSO — Hauptstadt der elektronischen Musik.", highlights: ["Berghain", "://about blank", "Sisyphos", "KitKat"], time: "1–3 Nächte", best: "ganzjährig", emoji: "🎪" },
-  { id: "hurricane", title: "Hurricane / Southside", cat: "party", location: "Norden/Süden", desc: "Parallel-Festivals — Juni 2026. Live-Musik, Camping, Open Air.", highlights: ["Live-Musik", "Camping", "Open Air", "Line-Up"], time: "Wochenende", best: "Juni 2026", emoji: "🎪" },
-  { id: "leipzig_nachtleben", title: "Leipzig Nachtleben", cat: "party", location: "Leipzig", desc: "Ilses Erika, Elipamanoke, distillery — Leipzigs Clubszene ist massiv unterschätzt.", highlights: ["Ilses Erika", "Elipamanoke", "distillery", "UT Connewitz"], time: "1–2 Nächte", best: "ganzjährig", emoji: "🎪" },
-  // === RELAX ===
-  { id: "baden_baden", title: "Baden-Baden Thermen", cat: "relax", location: "Südwesten", desc: "Caracalla-Therme, Friedrichsbad — römisches Bade-Erlebnis im Schwarzwald.", highlights: ["Caracalla-Therme", "Friedrichsbad", "Lichtentaler Allee", "Kurhaus"], time: "1 Tag", best: "ganzjährig", emoji: "🛀" },
-  { id: "ostsee_strand", title: "Ostsee-Strände", cat: "relax", location: "Norden", desc: "Timmendorf, Boltenhagen, Usedom — feine Sandstrände ohne Nordsee-Wind.", highlights: ["Timmendorf", "Usedom", "Boltenhagen", "Fahrrad an der Küste"], time: "1–2 Tage", best: "Juni–August", emoji: "🛀" },
-  // === UNIQUE ===
-  { id: "miniatur_wunderland", title: "Miniatur Wunderland", cat: "unique", location: "Hamburg", desc: "Größte Modelleisenbahn der Welt. Knapp 10.000 m², unglaubliche Details.", highlights: ["Knuffingen Airport", "Alle Kontinente", "Tag-Nacht-Zyklus", "Lichtshow"], time: "3–4 Std.", best: "vorher buchen!", emoji: "✨" },
-  { id: "baumhaus_hotel", title: "Baumhaushotel Allgäu", cat: "unique", location: "Allgäu", desc: "In Baumkugeln übernachten. Free Spirit Sphere Hotel — märchenhaft.", highlights: ["Kugel-Häuser", "Berge", "Sternenhimmel", "Romantik pur"], time: "1 Nacht", best: "ganzjährig", emoji: "✨" },
-  { id: "teufelsbruecke", title: "Rakotzbrücke (Teufelsbrücke)", cat: "unique", location: "Kromlau, Sachsen", desc: "Magische Brücke die im Wasser einen perfekten Kreis bildet. Fotomotiv!", highlights: ["Rakotzbrücke", "Azaleenpark", "Spiegelung", "Märchenhaft"], time: "1–2 Std.", best: "Mai–Juni (Azaleenblüte)", emoji: "✨" },
-  { id: "flossfahrt_muenchen", title: "Isar-Floßfahrt München", cat: "unique", location: "München", desc: "Mit dem Floß die Isar runter — Bier, Musik, Sonne. Bester Tag in München.", highlights: ["Floßfahren", "Bier", "Baden", "Wirtshaus am Ziel"], time: "4–6 Std.", best: "Juni–August", emoji: "✨" },
+const MODULES: BaukastenModul[] = [
+  { id: "hamburg", title: "Hamburg", cat: "stadt", location: "Norden", desc: "Elbphilharmonie, Speicherstadt, Szene, Nachtleben", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🏙️" },
+  { id: "berlin", title: "Berlin", cat: "stadt", location: "Osten", desc: "Geschichte, Clubkultur, Street Art, Weltstadt", highlights: [], time: "2–3 Tage", best: "ganzjährig", emoji: "🏙️" },
+  { id: "leipzig", title: "Leipzig", cat: "stadt", location: "Osten", desc: "Szene, Industrie-Chic, Kanäle, Kunst", highlights: [], time: "1–2 Tage", best: "Frühling–Herbst", emoji: "🏙️" },
+  { id: "dresden", title: "Dresden", cat: "stadt", location: "Osten", desc: "Barock, Elbflorenz, Frauenkirche, Neustadt", highlights: [], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
+  { id: "muenchen", title: "München", cat: "stadt", location: "Süden", desc: "Biergärten, Isar-Floßfahrt, Kunst, Alpenblick", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🏙️" },
+  { id: "koeln", title: "Köln", cat: "stadt", location: "Westen", desc: "Dom, Rheinufer, Brauhaus-Kultur, Szene", highlights: [], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
+  { id: "bamberg", title: "Bamberg", cat: "stadt", location: "Franken", desc: "UNESCO-Altstadt, Rauchbier, 11 Brauereien", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏘️" },
+  { id: "frankfurt", title: "Frankfurt", cat: "stadt", location: "Zentrum", desc: "Skyline, Mainufer, Food-Szene, Bankenviertel", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏙️" },
+  { id: "saechsische_schweiz", title: "Sächsische Schweiz", cat: "natur", location: "Osten", desc: "Felsen, Malerweg, Basteibrücke — wie eine andere Welt", highlights: [], time: "2–3 Tage", best: "April–Oktober", emoji: "🌲" },
+  { id: "schwarzwald", title: "Schwarzwald", cat: "natur", location: "Südwesten", desc: "Wasserfälle, Wälder, Kuckucksuhren, Feldberg", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🌲" },
+  { id: "koenigssee", title: "Königssee", cat: "natur", location: "Berchtesgaden", desc: "Türkisblauer See, von Bergen eingerahmt", highlights: [], time: "1–2 Tage", best: "Mai–September", emoji: "🌲" },
+  { id: "seenplatte", title: "Mecklenb. Seenplatte", cat: "natur", location: "Norden", desc: "500+ Seen, Kanu, Hausboot, absolute Stille", highlights: [], time: "2–4 Tage", best: "Mai–September", emoji: "🌲" },
+  { id: "spreewald", title: "Spreewald", cat: "natur", location: "Osten", desc: "Kahnfahren, Gurken, Biosphärenreservat", highlights: [], time: "1–2 Tage", best: "Mai–September", emoji: "🌲" },
+  { id: "ruegen", title: "Rügen", cat: "natur", location: "Ostsee", desc: "Kreidefelsen, Nationalpark Jasmund, Ostsee", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🌲" },
+  { id: "zugspitze", title: "Zugspitze", cat: "natur", location: "Garmisch", desc: "Höchster Berg DE, Eibsee, Zahnradbahn, Schlucht", highlights: [], time: "1 Tag", best: "Mai–Oktober", emoji: "🏔️" },
+  { id: "neuschwanstein", title: "Neuschwanstein", cat: "kultur", location: "Bayern", desc: "Das Märchenschloss. Disney-Vorlage. Tickets vorher buchen!", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
+  { id: "romantische_strasse", title: "Romantische Straße", cat: "kultur", location: "Franken→Bayern", desc: "Rothenburg, Würzburg, Weinberge, Schlösser", highlights: [], time: "2–3 Tage", best: "April–Oktober", emoji: "🏰" },
+  { id: "rheinromantik", title: "Rheinromantik", cat: "kultur", location: "Westen", desc: "Burgen, Loreley, Weinberge, schönste Flusslandschaft", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🏰" },
+  { id: "heidelberg", title: "Heidelberg", cat: "kultur", location: "Südwesten", desc: "Romantischste Altstadt, Schloss, Philosophenweg", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
+  { id: "weinstrasse", title: "Deutsche Weinstraße", cat: "kulinarik", location: "Pfalz", desc: "Riesling pur, Winzerdörfer, Pfälzer Küche", highlights: [], time: "1–2 Tage", best: "September–Oktober", emoji: "🍷" },
+  { id: "bierkultur", title: "Bierkultur-Tour", cat: "kulinarik", location: "Westen/Franken", desc: "Kölsch, Alt, Rauchbier — Brauereien satt", highlights: [], time: "2 Tage", best: "ganzjährig", emoji: "🍺" },
+  { id: "bodensee", title: "Bodensee", cat: "kulinarik", location: "Südwesten", desc: "Wein, Insel Mainau, Alpenpanorama, Fisch", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🍷" },
+  { id: "nationalpark_eifel", title: "Nationalpark Eifel", cat: "abenteuer", location: "Westen", desc: "Wildnis-Trail, Kletterwald, Stauseen, Burg", highlights: [], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
+  { id: "harz", title: "Harz & Brocken", cat: "abenteuer", location: "Zentrum", desc: "Brocken, Dampflok, Moore, Klippen", highlights: [], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
+  { id: "berlin_clubs", title: "Berliner Clubs", cat: "party", location: "Berlin", desc: "Berghain, Sisyphos, RSO – elektronische Musik satt", highlights: [], time: "1–3 Nächte", best: "ganzjährig", emoji: "🎪" },
+  { id: "hurricane", title: "Hurricane / Southside", cat: "party", location: "Norden/Süden", desc: "Parallel-Festivals im Juni. Camping, Live-Musik", highlights: [], time: "Wochenende", best: "Juni 2026", emoji: "🎪" },
+  { id: "leipzig_nacht", title: "Leipzig Nachtleben", cat: "party", location: "Leipzig", desc: "Ilses Erika, distillery, UT Connewitz", highlights: [], time: "1–2 Nächte", best: "ganzjährig", emoji: "🎪" },
+  { id: "baden_baden", title: "Baden-Baden", cat: "relax", location: "Schwarzwald", desc: "Caracalla-Therme, römisches Bade-Erlebnis", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🛀" },
+  { id: "ostsee_strand", title: "Ostseestrände", cat: "relax", location: "Norden", desc: "Timmendorf, Usedom – feiner Sand, kein Nordseewind", highlights: [], time: "1–2 Tage", best: "Juni–August", emoji: "🛀" },
+  { id: "miniatur_wunderland", title: "Miniatur Wunderland", cat: "unique", location: "Hamburg", desc: "Größte Modelleisenbahn. 10.000 m² Details", highlights: [], time: "3–4 Std.", best: "vorher buchen", emoji: "✨" },
+  { id: "baumhaus", title: "Baumhaushotel", cat: "unique", location: "Allgäu", desc: "In Baumkugeln übernachten – Free Spirit Sphere", highlights: [], time: "1 Nacht", best: "ganzjährig", emoji: "✨" },
+  { id: "teufelsbruecke", title: "Teufelsbrücke", cat: "unique", location: "Kromlau", desc: "Brücke die im Wasser einen perfekten Kreis bildet", highlights: [], time: "1–2 Std.", best: "Mai–Juni", emoji: "✨" },
+  { id: "flossfahrt", title: "Isar-Floßfahrt", cat: "unique", location: "München", desc: "Floß die Isar runter – Bier, Musik, Sonne", highlights: [], time: "4–6 Std.", best: "Juni–August", emoji: "✨" },
 ];
 
-type FilterKey = string | "all";
-
-const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
-  { key: "all", label: "Alle", icon: "🎯" },
-  { key: "stadt", label: "Städte", icon: "🏙️" },
-  { key: "natur", label: "Natur", icon: "🌲" },
-  { key: "kultur", label: "Kultur", icon: "🏰" },
-  { key: "kulinarik", label: "Kulinarik", icon: "🍺" },
-  { key: "abenteuer", label: "Abenteuer", icon: "🧗" },
-  { key: "party", label: "Party", icon: "🎪" },
-  { key: "relax", label: "Relax", icon: "🛀" },
-  { key: "unique", label: "Unique", icon: "✨" },
-];
-
-function matchesFilter(m: BaukastenModul, filter: FilterKey): boolean {
+function matchesFilter(m: BaukastenModul, filter: string): boolean {
   if (filter === "all") return true;
   const cats = Array.isArray(m.cat) ? m.cat : [m.cat];
   return cats.includes(filter);
 }
 
-function catClass(m: BaukastenModul): string {
+function catIcon(m: BaukastenModul): string {
   const c = Array.isArray(m.cat) ? m.cat[0] : m.cat;
-  return c;
+  return CATEGORIES.find((x) => x.key === c)?.icon || "📍";
 }
+
+const CAT_COLORS: Record<string, string> = {
+  stadt: "#a29bfe", natur: "#00b894", kultur: "#fdcb6e",
+  kulinarik: "#e17055", abenteuer: "#0984e3", party: "#fd79a8",
+  relax: "#81ecec", unique: "#f39c12",
+};
 
 export default function BaukastenPage() {
   const { selected, toggle, clear, remove } = useBaukasten();
-  const [filter, setFilter] = useState<FilterKey>("all");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [category, setCategory] = useState<string | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const filtered = useMemo(
-    () => ALL_MODULES.filter((m) => matchesFilter(m, filter)),
-    [filter]
+    () => (category ? MODULES.filter((m) => matchesFilter(m, category)) : []),
+    [category]
   );
 
   const selectedMods = useMemo(
-    () => ALL_MODULES.filter((m) => selected.includes(m.id)),
+    () => MODULES.filter((m) => selected.includes(m.id)),
     [selected]
   );
 
   const exportRoute = () => {
     if (selectedMods.length === 0) return;
-    let text = "🧩 Meine Deutschland Route\n";
-    text += "═══════════════════════════\n\n";
-    selectedMods.forEach((m, i) => {
-      const c = Array.isArray(m.cat) ? m.cat[0] : m.cat;
-      text += `${i + 1}. ${m.emoji} ${m.title} (${m.location})\n`;
-      text += `   ${m.desc}\n`;
-      text += `   ⏱ ${m.time} · 📅 ${m.best}\n`;
-      text += `   ${m.highlights.join(" · ")}\n\n`;
-    });
+    const text =
+      "🧩 Meine Deutschland Route\n═══════════════════════════\n\n" +
+      selectedMods
+        .map(
+          (m, i) =>
+            `${i + 1}. ${m.emoji} ${m.title} (${m.location})\n   ${m.desc} · ⏱ ${m.time}`
+        )
+        .join("\n\n");
     navigator.clipboard?.writeText(text).then(() => {
-      const btn = document.getElementById("baukasten-export-btn") as HTMLButtonElement;
+      const btn = document.getElementById("bk-export-btn") as HTMLButtonElement;
       if (btn) {
         btn.textContent = "✅ Kopiert!";
-        setTimeout(() => { btn.textContent = "📋 Route kopieren"; }, 2000);
+        setTimeout(() => (btn.textContent = "📋 Kopieren"), 2000);
       }
     });
   };
 
-  return (
-    <div className="baukasten-page">
-      {/* Header */}
-      <div className="baukasten-header">
-        <h1 className="baukasten-title">🧩 Reise-Baukasten</h1>
-        <p className="baukasten-subtitle">
-          Wähle Module, die dich interessieren → bau dir deine Wunschroute
-        </p>
-      </div>
+  if (!category) {
+    return (
+      <div className="bk-page">
+        <div className="bk-header">
+          <h1 className="bk-title">🧩 Reise-Baukasten</h1>
+          <p className="bk-sub">Wähl eine Kategorie → dann die Module für deine Route</p>
+        </div>
+        <div className="bk-cat-grid">
+          {CATEGORIES.map((c) => {
+            const count = MODULES.filter((m) => matchesFilter(m, c.key)).length;
+            return (
+              <button
+                key={c.key}
+                className="bk-cat-btn"
+                style={{ "--cat-color": CAT_COLORS[c.key] || "#666" } as React.CSSProperties}
+                onClick={() => setCategory(c.key)}
+              >
+                <span className="bk-cat-icon">{c.icon}</span>
+                <span className="bk-cat-label">{c.label}</span>
+                <span className="bk-cat-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Filter Bar */}
-      <div className="baukasten-filters">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            className={`baukasten-filter-btn ${filter === f.key ? "active" : ""}`}
-            onClick={() => setFilter(f.key)}
-          >
-            {f.icon} {f.label}
-            <span className="baukasten-filter-count">
-              {f.key === "all"
-                ? ALL_MODULES.length
-                : ALL_MODULES.filter((m) => matchesFilter(m, f.key)).length}
-            </span>
+        {selectedMods.length > 0 && (
+          <button className="bk-fab" onClick={() => setShowSidebar(true)}>
+            🧩 Route <span className="bk-fab-count">{selected.length}</span>
           </button>
-        ))}
+        )}
+        {showSidebar && <Sidebar selectedMods={selectedMods} clear={clear} remove={remove} exportRoute={exportRoute} onClose={() => setShowSidebar(false)} />}
+      </div>
+    );
+  }
+
+  const currentCat = CATEGORIES.find((c) => c.key === category);
+
+  return (
+    <div className="bk-page">
+      <div className="bk-header">
+        <button className="bk-back-btn" onClick={() => setCategory(null)}>← Übersicht</button>
+        <h1 className="bk-title" style={{ marginTop: "0.5rem" }}>
+          {currentCat?.icon} {currentCat?.label}
+        </h1>
+        <p className="bk-sub">{filtered.length} Module — klick zum Hinzufügen</p>
       </div>
 
-      {/* Module Grid */}
-      <div className="baukasten-grid">
+      <div className="bk-list">
         {filtered.map((m) => {
-          const isSelected = selected.includes(m.id);
-          const cClass = catClass(m);
+          const sel = selected.includes(m.id);
           return (
             <div
               key={m.id}
-              className={`baukasten-card ${cClass} ${isSelected ? "selected" : ""}`}
+              className={`bk-item ${sel ? "bk-item--sel" : ""}`}
               onClick={() => toggle(m.id)}
             >
-              {isSelected && <span className="baukasten-selected-badge">✓</span>}
-              <span className={`baukasten-tag ${cClass}`}>
-                {ICONS[cClass] || "📍"} {CAT_LABELS[cClass] || cClass}
-              </span>
-              <h3 className="baukasten-card-title">{m.emoji} {m.title}</h3>
-              <div className="baukasten-location">{m.location}</div>
-              <p className="baukasten-desc">{m.desc}</p>
-              <div className="baukasten-highlights">
-                {m.highlights.map((h) => (
-                  <span key={h} className="baukasten-highlight">
-                    #{h.replace(/\s+/g, "")}
-                  </span>
-                ))}
+              <div className="bk-item-left">
+                <div className="bk-item-emoji">{m.emoji}</div>
+                <div>
+                  <div className="bk-item-title">{m.title}</div>
+                  <div className="bk-item-loc">{m.location}</div>
+                </div>
               </div>
-              <div className="baukasten-meta">
+              <div className="bk-item-desc">{m.desc}</div>
+              <div className="bk-item-meta">
                 <span>⏱ {m.time}</span>
                 <span>📅 {m.best}</span>
               </div>
+              {sel && <div className="bk-check">✓</div>}
             </div>
           );
         })}
       </div>
 
-      {/* Floating sidebar button */}
-      <button
-        className="baukasten-fab"
-        onClick={() => setSidebarOpen(true)}
-      >
-        🧩 Route
-        <span className="baukasten-fab-count">{selected.length}</span>
+      <button className="bk-fab" onClick={() => setShowSidebar(true)}>
+        🧩 Route <span className="bk-fab-count">{selected.length}</span>
       </button>
+      {showSidebar && <Sidebar selectedMods={selectedMods} clear={clear} remove={remove} exportRoute={exportRoute} onClose={() => setShowSidebar(false)} />}
+    </div>
+  );
+}
 
-      {/* Sidebar overlay */}
-      {sidebarOpen && (
-        <div className="baukasten-overlay" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div className={`baukasten-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="baukasten-sidebar-header">
+function Sidebar({
+  selectedMods,
+  clear,
+  remove,
+  exportRoute,
+  onClose,
+}: {
+  selectedMods: BaukastenModul[];
+  clear: () => void;
+  remove: (id: string) => void;
+  exportRoute: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="bk-overlay" onClick={onClose} />
+      <div className="bk-sidebar">
+        <div className="bk-sidebar-head">
           <h2>🧩 Meine Route</h2>
-          <button className="baukasten-close-btn" onClick={() => setSidebarOpen(false)}>✕</button>
+          <button className="bk-close" onClick={onClose}>✕</button>
         </div>
-
         {selectedMods.length === 0 ? (
-          <div className="baukasten-sidebar-empty">
-            <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👆</p>
-            <p>Klick auf Karten, um deine Route zu bauen</p>
-          </div>
+          <div className="bk-empty">Klick auf Module, um sie hier zu sehen</div>
         ) : (
-          <div className="baukasten-route-list">
+          <div className="bk-sidebar-list">
             {selectedMods.map((m, i) => (
-              <div key={m.id} className="baukasten-route-item">
-                <span className="baukasten-route-pos">{i + 1}</span>
-                <div className="baukasten-route-info">
-                  <strong>{m.title}</strong>
-                  <span className="baukasten-route-loc">
-                    {ICONS[catClass(m)]} {m.location}
-                  </span>
-                </div>
-                <button
-                  className="baukasten-route-remove"
-                  onClick={() => remove(m.id)}
-                  title="Entfernen"
-                >
-                  ✕
-                </button>
+              <div key={m.id} className="bk-sidebar-item">
+                <span className="bk-sidebar-num">{i + 1}</span>
+                <span className="bk-sidebar-title">{m.emoji} {m.title}</span>
+                <button className="bk-sidebar-rm" onClick={() => remove(m.id)}>✕</button>
               </div>
             ))}
           </div>
         )}
-
-        <div className="baukasten-sidebar-actions">
-          <button id="baukasten-export-btn" className="baukasten-btn baukasten-btn-primary" onClick={exportRoute}>
-            📋 Route kopieren
-          </button>
-          <button className="baukasten-btn baukasten-btn-danger" onClick={clear}>
-            🗑️ Alle entfernen
-          </button>
+        <div className="bk-sidebar-actions">
+          <button id="bk-export-btn" className="bk-btn bk-btn-p" onClick={exportRoute}>📋 Kopieren</button>
+          <button className="bk-btn bk-btn-d" onClick={clear}>🗑️ Leeren</button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
