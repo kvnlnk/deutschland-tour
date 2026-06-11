@@ -19,6 +19,30 @@ export default function CustomRoutesPage({
         padding: "2rem 1.5rem",
       }}
     >
+      {/* Work in Progress Banner */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.05))",
+          border: "1px solid var(--color-accent)",
+          borderRadius: "12px",
+          padding: "1rem 1.25rem",
+          marginBottom: "1.5rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+        }}
+      >
+        <span style={{ fontSize: "1.3rem" }}>🚧</span>
+        <div>
+          <p style={{ fontWeight: 600, color: "var(--color-primary)", marginBottom: "0.15rem" }}>
+            Work in Progress
+          </p>
+          <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
+            Routeneditor und Starten-Funktion sind noch in Entwicklung. In Kürze verfügbar.
+          </p>
+        </div>
+      </div>
+
       <div
         style={{
           display: "flex",

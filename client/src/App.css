@@ -2128,6 +2128,63 @@ img {
   gap: 0.5rem;
 }
 
+/* Street View */
+.street-view {
+  margin: 1.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.street-view-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.street-view-container {
+  width: 100%;
+  height: 350px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.street-view-note {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: 0.35rem;
+}
+.street-view--missing .street-view-placeholder {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+.street-view-hint {
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.street-view-hint a {
+  color: var(--color-accent);
+}
+.street-view-hint code {
+  font-size: 0.7rem;
+  background: var(--color-bg-alt);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
 .city-card-badge--coming-soon {
   background: #6366f1;
   color: white;
