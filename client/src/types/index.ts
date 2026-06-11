@@ -28,6 +28,15 @@ export interface Route {
   pois: POI[];
 }
 
+export interface Review {
+  id: string;
+  routeId: string;
+  rating: number;
+  comment: string;
+  author: string;
+  date: string;
+}
+
 export interface TourState {
   isActive: boolean;
   currentPoiIndex: number;

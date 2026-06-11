@@ -30,13 +30,6 @@ function savePurchases(purchases: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...purchases]));
 }
 
-// Stripe checkout server URL
-const API_BASE = "";
-// In dev, need full URL for direct calls
-function getCheckoutUrl() {
-  return `${API_BASE}/api/create-checkout-session`;
-}
-
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const [purchasedTours, setPurchasedTours] = useState<Set<string>>(loadPurchases);
   const [loading, setLoading] = useState(false);
@@ -56,7 +49,6 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
       setPurchasedTours((prev) => {
         const next = new Set(prev);
         if (purchase === "all-access") {
-          // All access unlocks everything
           next.add("all-access");
         } else if (purchase === "city-bundle") {
           next.add("city-bundle");
@@ -82,33 +74,26 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const purchaseTour = useCallback(async (routeId: string) => {
     setLoading(true);
     try {
-      const res = await fetch(getCheckoutUrl(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ routeId }),
-      });
-      const data = await res.json();
-      if (data.url) {
+      const { createCheckoutSession, logPurchase } = await import("../api");
+      const data = await createCheckoutSession(routeId);
+      if (data.url && !data.demo) {
         window.location.href = data.url;
-      } else if (data.error === "Stripe not configured") {
+      } else {
         // Demo mode: unlock locally
         setPurchasedTours((prev) => {
           const next = new Set(prev);
           next.add(routeId);
           return next;
         });
-        alert("🔓 Demo-Modus: Tour wurde freigeschaltet! (Stripe-Integration folgt)");
-      } else {
-        alert("Fehler: " + (data.error || "Unbekannter Fehler"));
+        logPurchase(routeId, "single", 499);
       }
-    } catch (err: any) {
-      // If server unreachable (dev fallback), unlock locally
+    } catch {
+      // Fallback
       setPurchasedTours((prev) => {
         const next = new Set(prev);
         next.add(routeId);
         return next;
       });
-      alert("🔓 Demo-Modus: Tour freigeschaltet! (Server nicht erreichbar)");
     } finally {
       setLoading(false);
     }
@@ -117,22 +102,17 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const purchaseBundle = useCallback(async (type: "city-bundle" | "all-access") => {
     setLoading(true);
     try {
-      const res = await fetch(getCheckoutUrl(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bundle: type }),
-      });
-      const data = await res.json();
-      if (data.url) {
+      const { createCheckoutSession, logPurchase } = await import("../api");
+      const data = await createCheckoutSession(undefined, type);
+      if (data.url && !data.demo) {
         window.location.href = data.url;
       } else {
-        // Demo mode: unlock locally
         setPurchasedTours((prev) => {
           const next = new Set(prev);
           next.add(type);
           return next;
         });
-        alert("🔓 Demo-Modus: " + (type === "all-access" ? "Alle Touren" : "Städte-Bundle") + " freigeschaltet!");
+        logPurchase(type, "bundle", type === "all-access" ? 2999 : 1499);
       }
     } catch {
       setPurchasedTours((prev) => {
@@ -140,7 +120,6 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
         next.add(type);
         return next;
       });
-      alert("🔓 Demo-Modus: Freigeschaltet! (Server nicht erreichbar)");
     } finally {
       setLoading(false);
     }

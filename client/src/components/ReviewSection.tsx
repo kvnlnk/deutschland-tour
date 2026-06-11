@@ -1,25 +1,17 @@
 import { useState, useEffect } from "react";
-
-interface Review {
-  id: string;
-  routeId: string;
-  rating: number; // 1-5
-  comment: string;
-  author: string;
-  date: string;
-}
+import type { Review } from "../types";
 
 interface ReviewSectionProps {
   routeId: string;
   routeName: string;
 }
 
-const STORAGE_KEY = "deutschland-tour-reviews";
+const LOCAL_KEY = "deutschland-tour-reviews";
 
-export function getReviewsForRoute(routeId: string): Review[] {
+function getLocalReviews(routeId: string): Review[] {
   try {
     const all: Record<string, Review[]> = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "{}"
+      localStorage.getItem(LOCAL_KEY) || "{}"
     );
     return all[routeId] || [];
   } catch {
@@ -27,8 +19,8 @@ export function getReviewsForRoute(routeId: string): Review[] {
   }
 }
 
-export function getAverageRating(routeId: string): { avg: number; count: number } {
-  const reviews = getReviewsForRoute(routeId);
+function getLocalAverage(routeId: string): { avg: number; count: number } {
+  const reviews = getLocalReviews(routeId);
   if (reviews.length === 0) return { avg: 0, count: 0 };
   const sum = reviews.reduce((a, r) => a + r.rating, 0);
   return { avg: +(sum / reviews.length).toFixed(1), count: reviews.length };
@@ -36,17 +28,41 @@ export function getAverageRating(routeId: string): { avg: number; count: number 
 
 export default function ReviewSection({ routeId, routeName }: ReviewSectionProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState({ avg: 0, count: 0 });
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [author, setAuthor] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [apiMode, setApiMode] = useState(false);
 
   useEffect(() => {
-    setReviews(getReviewsForRoute(routeId));
+    loadReviews();
   }, [routeId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function loadReviews() {
+    // Try API first
+    try {
+      const { fetchReviews } = await import("../api");
+      const result = await fetchReviews(routeId);
+      if (result.reviews.length > 0) {
+        setReviews(result.reviews);
+        setStats(result.stats);
+        setApiMode(true);
+        return;
+      }
+    } catch {
+      // API failed, use local
+    }
+
+    // Fallback to localStorage
+    const local = getLocalReviews(routeId);
+    setReviews(local);
+    setStats(getLocalAverage(routeId));
+    setApiMode(false);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (rating === 0) return;
 
@@ -59,21 +75,37 @@ export default function ReviewSection({ routeId, routeName }: ReviewSectionProps
       date: new Date().toLocaleDateString("de-DE"),
     };
 
-    const all: Record<string, Review[]> = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "{}"
-    );
-    all[routeId] = [newReview, ...(all[routeId] || [])];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    // Try API
+    let posted = false;
+    try {
+      const { postReview } = await import("../api");
+      const result = await postReview(routeId, newReview.author, rating, comment);
+      posted = result.success;
+    } catch {
+      posted = false;
+    }
 
-    setReviews(all[routeId]);
+    if (posted) {
+      setApiMode(true);
+      // Reload from API
+      loadReviews();
+    } else {
+      // Fallback to localStorage
+      const all: Record<string, Review[]> = JSON.parse(
+        localStorage.getItem(LOCAL_KEY) || "{}"
+      );
+      all[routeId] = [newReview, ...(all[routeId] || [])];
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+      setReviews(all[routeId]);
+      setStats(getLocalAverage(routeId));
+    }
+
     setRating(0);
     setComment("");
     setAuthor("");
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  const { avg, count } = getAverageRating(routeId);
+  }
 
   const renderStars = (value: number, interactive = false) => (
     <div className="review-stars">
@@ -99,11 +131,11 @@ export default function ReviewSection({ routeId, routeName }: ReviewSectionProps
     <div className="review-section">
       <div className="review-header">
         <h3 className="review-title">Bewertungen</h3>
-        {count > 0 && (
+        {stats.count > 0 && (
           <div className="review-summary">
-            <span className="review-avg">{avg}</span>
-            {renderStars(Math.round(avg))}
-            <span className="review-count">({count})</span>
+            <span className="review-avg">{stats.avg}</span>
+            {renderStars(Math.round(stats.avg))}
+            <span className="review-count">({stats.count})</span>
           </div>
         )}
       </div>

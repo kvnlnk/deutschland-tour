@@ -1,39 +1,73 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
 import FAQSection from "./components/FAQSection";
 import SearchBar from "./components/SearchBar";
 import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
-import { routes, getRouteById } from "./data";
+import {
+  mergeRoutes,
+  getRouteById,
+  getRoutes,
+  getStats,
+  CITIES,
+} from "./data";
+import type { Route } from "./types";
 
 const TourView = lazy(() => import("./components/TourView"));
 
 type Screen = "landing" | "tour" | "about";
 
-const STATS = {
-  pois: routes.reduce((sum, r) => sum + r.pois.length, 0),
-  distance: routes.reduce((sum, r) => sum + r.distanceKm, 0).toFixed(1),
-  cities: routes.length,
-  languages: 2,
-};
-
 export function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [selectedRouteId, setSelectedRouteId] = useState<string>("berlin-classic");
+  const [apiReady, setApiReady] = useState(false);
   const { hasAccess, purchaseTour, loading } = usePurchase();
+
+  // Load from API on mount (silently)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { fetchRoutes, fetchRouteDetails } = await import("./api");
+        const routeList = await fetchRoutes();
+
+        // Fetch details for each route (gives POIs)
+        const details = await Promise.all(
+          routeList.map((r: Route) => fetchRouteDetails(r.id))
+        );
+        const validDetails = details.filter(Boolean) as Route[];
+
+        // Merge with fallback data
+        mergeRoutes(validDetails.length > 0 ? validDetails : routeList);
+        if (!cancelled) setApiReady(true);
+      } catch {
+        // API failed, fallback data already set by mergeRoutes
+        if (!cancelled) setApiReady(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const routes = getRoutes();
+  const stats = getStats();
+  const selectedRoute = getRouteById(selectedRouteId);
 
   const startTour = (routeId: string) => {
     setSelectedRouteId(routeId);
     setScreen("tour");
   };
 
-  const selectedRoute = getRouteById(selectedRouteId);
-
   return (
     <div className="app">
       {screen === "landing" && (
         <>
+          {!apiReady && (
+            <div className="loading-bar">
+              <div className="loading-bar-fill" />
+            </div>
+          )}
+
           <Hero
             onStartTour={() => startTour("berlin-classic")}
             onLearnMore={() => setScreen("about")}
@@ -87,19 +121,19 @@ export function AppContent() {
           <section className="stats-section">
             <div className="stats-grid">
               <div className="stat-item">
-                <span className="stat-number">{STATS.pois}</span>
+                <span className="stat-number">{stats.pois}</span>
                 <span className="stat-label">Stationen</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">{STATS.distance} km</span>
+                <span className="stat-number">{stats.distance} km</span>
                 <span className="stat-label">Routenlänge</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">{STATS.cities}</span>
+                <span className="stat-number">{stats.cities}</span>
                 <span className="stat-label">Städte</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">{STATS.languages}</span>
+                <span className="stat-number">{stats.languages}</span>
                 <span className="stat-label">Sprachen</span>
               </div>
               <div className="stat-item">
