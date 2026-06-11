@@ -28,6 +28,22 @@
   --header-height: 60px;
 }
 
+/* Dark Mode */
+.dark {
+  --color-bg: #111827;
+  --color-bg-alt: #1f2937;
+  --color-text: #f3f4f6;
+  --color-text-muted: #9ca3af;
+  --color-primary: #d4a853;
+  --color-primary-light: #e8c87a;
+  --color-accent: #60a5fa;
+  --color-accent-light: #93c5fd;
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --color-border: #374151;
+  --color-card-shadow: rgba(0,0,0,0.3);
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -119,6 +135,31 @@ img {
   color: var(--color-accent);
   margin-bottom: 1.5rem;
   backdrop-filter: blur(10px);
+}
+
+.hero-dark-toggle {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.hero-dark-toggle:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  transform: scale(1.05);
 }
 
 .hero-title {
@@ -513,6 +554,10 @@ img {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
+}
+
+.dark .tour-header {
+  background: rgba(31,41,55,0.95);
 }
 
 .tour-back-btn {
@@ -933,6 +978,10 @@ img {
   backdrop-filter: blur(12px);
   box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
   transition: transform 0.3s ease;
+}
+
+.dark .audio-player {
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
 }
 
 .audio-player--active {

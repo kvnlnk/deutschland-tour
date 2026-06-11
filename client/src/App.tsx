@@ -5,6 +5,7 @@ import FAQSection from "./components/FAQSection";
 import SearchBar from "./components/SearchBar";
 import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
+import { useDarkMode } from "./hooks/useDarkMode";
 import {
   mergeRoutes,
   getRouteById,
@@ -22,6 +23,7 @@ export function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [selectedRouteId, setSelectedRouteId] = useState<string>("berlin-classic");
   const [apiReady, setApiReady] = useState(false);
+  const { dark, toggle: toggleDark } = useDarkMode();
   const { hasAccess, purchaseTour, loading } = usePurchase();
 
   // Load from API on mount (silently)
@@ -71,6 +73,8 @@ export function AppContent() {
           <Hero
             onStartTour={() => startTour("berlin-classic")}
             onLearnMore={() => setScreen("about")}
+            dark={dark}
+            onToggleDark={toggleDark}
           />
 
           {/* Search Section */}
