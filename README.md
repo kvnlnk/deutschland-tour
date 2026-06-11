@@ -6,6 +6,12 @@ Explore Berlin, Munich, Hamburg, Cologne, Dresden, Heidelberg, and Frankfurt wit
 
 ---
 
+## 🤖 Fully Vibecoded with Hermes Agent
+
+This project was built entirely through natural language conversations with [Hermes Agent](https://hermes-agent.nousresearch.com) — an autonomous AI coding assistant. From architecture to deployment, every line of code was generated, tested, and deployed via voice and chat prompts.
+
+---
+
 ## ✨ Features
 
 - **🎧 GPS-Activated Audio** — Stories play automatically as you approach landmarks
@@ -336,10 +342,6 @@ Recommended setup:
 | GET    | `/api/health`                 | Health check              |
 
 ---
-
-## 🤖 Fully Vibecoded with Hermes Agent
-
-This project was built entirely through natural language conversations with [Hermes Agent](https://hermes-agent.nousresearch.com) — an autonomous AI coding assistant. From architecture to deployment, every line of code was generated, tested, and deployed via voice and chat prompts.
 
 ---
 
