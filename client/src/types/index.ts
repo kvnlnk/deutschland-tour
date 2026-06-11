@@ -24,6 +24,7 @@ export interface Route {
   durationMinutes: number;
   distanceKm: number;
   priceCents: number;
+  tags?: string[];
   pois: POI[];
 }
 

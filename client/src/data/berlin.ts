@@ -13,6 +13,7 @@ export const berlinClassicRoute: Route = {
   durationMinutes: 120,
   distanceKm: 4.2,
   priceCents: 0, // free demo tour
+  tags: ["historisch", "architektur", "klassiker"],
   pois: [
     {
       id: "brandenburger-tor",

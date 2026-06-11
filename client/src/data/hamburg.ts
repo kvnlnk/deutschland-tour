@@ -13,6 +13,7 @@ export const hamburgHafen: Route = {
   durationMinutes: 100,
   distanceKm: 3.5,
   priceCents: 499,
+  tags: ["hafen", "architektur", "geschichte"],
   pois: [
     {
       id: "hamburg-rathaus",

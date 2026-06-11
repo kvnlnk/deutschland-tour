@@ -13,6 +13,7 @@ export const muenchenAltstadt: Route = {
   durationMinutes: 90,
   distanceKm: 3.1,
   priceCents: 499,
+  tags: ["kulinarisch", "geschichte", "kultur"],
   pois: [
     {
       id: "muenchen-marienplatz",
