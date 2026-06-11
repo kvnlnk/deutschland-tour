@@ -4,6 +4,7 @@ import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
 import FAQSection from "./components/FAQSection";
 import SearchBar from "./components/SearchBar";
+import RoutePreview from "./components/RoutePreview";
 import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
 import { useDarkMode } from "./hooks/useDarkMode";
@@ -25,6 +26,7 @@ export function AppContent() {
   const [page, setPage] = useState<Page>("home");
   const [selectedRouteId, setSelectedRouteId] = useState<string>("berlin-classic");
   const [apiReady, setApiReady] = useState(false);
+  const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const { dark, toggle: toggleDark } = useDarkMode();
   const { hasAccess, purchaseTour, loading } = usePurchase();
 
@@ -59,8 +61,19 @@ export function AppContent() {
   };
 
   const startTour = (routeId: string) => {
+    setPreviewRoute(null);
     setSelectedRouteId(routeId);
     setPage("tour");
+  };
+
+  const handleCityClick = (route: Route) => {
+    const isFree = route.priceCents === 0;
+    const owned = hasAccess(route.id);
+    if (isFree || owned) {
+      startTour(route.id);
+    } else {
+      setPreviewRoute(route);
+    }
   };
 
   const SectionTitle = ({ id, title, subtitle }: { id?: string; title: string; subtitle?: string }) => (
@@ -75,7 +88,7 @@ export function AppContent() {
   }) => (
     <div
       className={`city-card ${canStart ? "" : "city-card--locked"}`}
-      onClick={() => canStart ? startTour(route.id) : purchaseTour(route.id)}
+      onClick={() => handleCityClick(route)}
     >
       <div className="city-card-image">
         <img src={route.imageUrl} alt={route.city} loading="lazy" />
@@ -133,6 +146,18 @@ export function AppContent() {
 
       {page !== "tour" && (
         <NavBar dark={dark} onToggleDark={toggleDark} onNavigate={navigate} currentPage={page} />
+      )}
+
+      {/* Route Preview Modal */}
+      {previewRoute && (
+        <RoutePreview
+          route={previewRoute}
+          onStart={() => startTour(previewRoute.id)}
+          onClose={() => setPreviewRoute(null)}
+          hasAccess={hasAccess(previewRoute.id)}
+          onPurchase={() => purchaseTour(previewRoute.id)}
+          loading={loading}
+        />
       )}
 
       {/* === HOME PAGE === */}
