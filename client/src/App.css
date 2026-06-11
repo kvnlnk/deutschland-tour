@@ -2090,3 +2090,21 @@ img {
   50% { width: 50%; }
   100% { transform: translateX(400%); width: 30%; }
 }
+
+/* === Virtual POI View === */
+.virtual-poi-view {
+  padding: 1rem;
+}
+.virtual-poi-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+.virtual-poi-card {
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+}
