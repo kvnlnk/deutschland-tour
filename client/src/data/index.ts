@@ -55,7 +55,8 @@ export function mergeRoutes(apiRoutes: Route[]): Route[] {
     });
 
     return {
-      ...apiRoute,
+      ...fallback, // Fallback fills null fields (imageUrl, etc.)
+      ...apiRoute, // API overrides
       priceCents: 0,
       pois: mergedPois,
     };

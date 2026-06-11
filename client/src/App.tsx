@@ -389,13 +389,18 @@ export function AppContent() {
         </div>
       )}
 
-      {/* === PRICING PAGE === */}
+      {/* === PRICING PAGE — alles kostenlos === */}
       {page === "pricing" && (
         <div className="page-pricing">
-          <PricingSection
-            onStartFreeTour={() => startTour("berlin-classic")}
-            standalone
-          />
+          <section style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "4rem 1.5rem", textAlign: "center" }}>
+            <h2>Alle Touren kostenlos 🎉</h2>
+            <p style={{ fontSize: "1.1rem", color: "var(--color-text-muted)", marginTop: "1rem" }}>
+              Deutschland Tour ist komplett kostenlos. Keine versteckten Kosten, kein Kauf nötig.
+            </p>
+            <button className="btn btn-primary" style={{ marginTop: "2rem" }} onClick={() => setPage("home")}>
+              Zur Startseite
+            </button>
+          </section>
           <footer className="footer">
             <div className="footer-content">
               <div className="footer-brand">
