@@ -3,9 +3,10 @@ import { PRICING } from "../data";
 
 interface PricingSectionProps {
   onStartFreeTour: () => void;
+  standalone?: boolean;
 }
 
-export default function PricingSection({ onStartFreeTour }: PricingSectionProps) {
+export default function PricingSection({ onStartFreeTour, standalone }: PricingSectionProps) {
   const { purchaseTour, purchaseBundle, loading, hasAccess, purchasedTours } = usePurchase();
 
   const formatPrice = (cents: number) => `€${(cents / 100).toFixed(2)}`;

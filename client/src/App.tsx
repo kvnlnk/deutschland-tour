@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import NavBar from "./components/NavBar";
 import Hero from "./components/Hero";
 import PricingSection from "./components/PricingSection";
 import FAQSection from "./components/FAQSection";
@@ -11,40 +12,36 @@ import {
   getRouteById,
   getRoutes,
   getStats,
-  CITIES,
 } from "./data";
 import type { Route } from "./types";
 
 const TourView = lazy(() => import("./components/TourView"));
 
-type Screen = "landing" | "tour" | "about";
+type Page = "home" | "tours" | "pricing" | "about" | "tour";
+
+const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic"];
 
 export function AppContent() {
-  const [screen, setScreen] = useState<Screen>("landing");
+  const [page, setPage] = useState<Page>("home");
   const [selectedRouteId, setSelectedRouteId] = useState<string>("berlin-classic");
   const [apiReady, setApiReady] = useState(false);
   const { dark, toggle: toggleDark } = useDarkMode();
   const { hasAccess, purchaseTour, loading } = usePurchase();
 
-  // Load from API on mount (silently)
+  // Load from API on mount
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const { fetchRoutes, fetchRouteDetails } = await import("./api");
         const routeList = await fetchRoutes();
-
-        // Fetch details for each route (gives POIs)
         const details = await Promise.all(
           routeList.map((r: Route) => fetchRouteDetails(r.id))
         );
         const validDetails = details.filter(Boolean) as Route[];
-
-        // Merge with fallback data
         mergeRoutes(validDetails.length > 0 ? validDetails : routeList);
         if (!cancelled) setApiReady(true);
       } catch {
-        // API failed, fallback data already set by mergeRoutes
         if (!cancelled) setApiReady(true);
       }
     })();
@@ -55,73 +52,100 @@ export function AppContent() {
   const stats = getStats();
   const selectedRoute = getRouteById(selectedRouteId);
 
+  const navigate = (p: string) => {
+    if (p === "home" || p === "tours" || p === "pricing" || p === "about") {
+      setPage(p);
+    }
+  };
+
   const startTour = (routeId: string) => {
     setSelectedRouteId(routeId);
-    setScreen("tour");
+    setPage("tour");
   };
+
+  const SectionTitle = ({ id, title, subtitle }: { id?: string; title: string; subtitle?: string }) => (
+    <>
+      <h2 className="section-title" id={id}>{title}</h2>
+      {subtitle && <p className="section-subtitle">{subtitle}</p>}
+    </>
+  );
+
+  const CityCard = ({ route, canStart, owned, isFree }: {
+    route: Route; canStart: boolean; owned: boolean; isFree: boolean;
+  }) => (
+    <div
+      className={`city-card ${canStart ? "" : "city-card--locked"}`}
+      onClick={() => canStart ? startTour(route.id) : purchaseTour(route.id)}
+    >
+      <div className="city-card-image">
+        <img src={route.imageUrl} alt={route.city} loading="lazy" />
+        <div className="city-card-overlay">
+          {isFree ? (
+            <span className="city-card-badge city-card-badge--free">KOSTENLOS</span>
+          ) : owned ? (
+            <span className="city-card-badge city-card-badge--owned">GEKAUFT</span>
+          ) : (
+            <span className="city-card-badge city-card-badge--paid">
+              €{(route.priceCents / 100).toFixed(2)}
+            </span>
+          )}
+        </div>
+        {!canStart && !loading && (
+          <div className="city-card-lock">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="city-card-body">
+        <h3 className="city-card-title">{route.city}</h3>
+        <p className="city-card-desc">{route.description}</p>
+        <div className="city-card-meta">
+          <span>🚶 {route.distanceKm} km</span>
+          <span>⏱ ~{route.durationMinutes} min</span>
+          <span>📍 {route.pois.length} Stationen</span>
+          {route.tags && route.tags.length > 0 && (
+            <span className="city-card-tags">
+              {route.tags.slice(0, 2).map(t => `#${t}`).join(" ")}
+            </span>
+          )}
+        </div>
+        {!canStart && (
+          <button
+            className="btn btn-accent pricing-btn-sm"
+            onClick={(e) => { e.stopPropagation(); purchaseTour(route.id); }}
+            disabled={loading}
+          >
+            {loading ? "..." : `€${(route.priceCents / 100).toFixed(2)} kaufen`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="app">
-      {screen === "landing" && (
-        <>
-          {!apiReady && (
-            <div className="loading-bar">
-              <div className="loading-bar-fill" />
-            </div>
-          )}
+      {!apiReady && page !== "tour" && (
+        <div className="loading-bar"><div className="loading-bar-fill" /></div>
+      )}
 
+      {page !== "tour" && (
+        <NavBar dark={dark} onToggleDark={toggleDark} onNavigate={navigate} currentPage={page} />
+      )}
+
+      {/* === HOME PAGE === */}
+      {page === "home" && (
+        <>
           <Hero
             onStartTour={() => startTour("berlin-classic")}
-            onLearnMore={() => setScreen("about")}
+            onLearnMore={() => setPage("about")}
+            onViewAllTours={() => setPage("tours")}
             dark={dark}
             onToggleDark={toggleDark}
           />
 
-          {/* Search Section */}
-          <section className="search-section">
-            <div className="search-section-content">
-              <SearchBar
-                onSearch={(query) => {
-                  const found = routes.find(
-                    (r) =>
-                      r.city.toLowerCase().includes(query.toLowerCase()) ||
-                      r.tags?.some((t) =>
-                        t.toLowerCase().includes(query.toLowerCase())
-                      )
-                  );
-                  if (found) startTour(found.id);
-                }}
-              />
-              <div className="search-popular">
-                <span className="search-popular-label">Beliebt:</span>
-                {routes.map((r) => (
-                  <button
-                    key={r.id}
-                    className="search-popular-tag"
-                    onClick={() => startTour(r.id)}
-                  >
-                    {r.city}
-                  </button>
-                ))}
-                {["historisch", "architektur", "kulinarisch"].map((tag) => (
-                  <button
-                    key={tag}
-                    className="search-popular-tag search-popular-tag--tag"
-                    onClick={() => {
-                      const found = routes.find((r) =>
-                        r.tags?.includes(tag)
-                      );
-                      if (found) startTour(found.id);
-                    }}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Stats Counter Section */}
           <section className="stats-section">
             <div className="stats-grid">
               <div className="stat-item">
@@ -147,176 +171,63 @@ export function AppContent() {
             </div>
           </section>
 
-          {/* City Preview Section */}
-          <section className="city-preview" id="tours">
-            <div className="city-preview-content">
-              <h2 className="section-title">Verfügbare Touren</h2>
-              <p className="section-subtitle">
-                Wähle deine Stadt und tauche ein in die Geschichte.
-              </p>
-
-              <div className="city-cards">
-                {routes.map((route) => {
-                  const isFree = route.priceCents === 0;
-                  const owned = hasAccess(route.id);
-                  const canStart = isFree || owned;
-
-                  return (
-                    <div
-                      key={route.id}
-                      className={`city-card ${canStart ? "" : "city-card--locked"}`}
-                      onClick={() => canStart ? startTour(route.id) : purchaseTour(route.id)}
-                    >
-                      <div className="city-card-image">
-                        <img
-                          src={route.imageUrl}
-                          alt={route.city}
-                          loading="lazy"
-                        />
-                        <div className="city-card-overlay">
-                          {isFree ? (
-                            <span className="city-card-badge city-card-badge--free">KOSTENLOS</span>
-                          ) : owned ? (
-                            <span className="city-card-badge city-card-badge--owned">GEKAUFT</span>
-                          ) : (
-                            <span className="city-card-badge city-card-badge--paid">
-                              €{(route.priceCents / 100).toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        {!canStart && !loading && (
-                          <div className="city-card-lock">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="city-card-body">
-                        <h3 className="city-card-title">{route.city}</h3>
-                        <p className="city-card-desc">
-                          {route.description}
-                        </p>
-                        <div className="city-card-meta">
-                          <span>🚶 {route.distanceKm} km</span>
-                          <span>⏱ ~{route.durationMinutes} min</span>
-                          <span>📍 {route.pois.length} Stationen</span>
-                        </div>
-                        {!canStart && (
-                          <button
-                            className="btn btn-accent pricing-btn-sm"
-                            onClick={(e) => { e.stopPropagation(); purchaseTour(route.id); }}
-                            disabled={loading}
-                          >
-                            {loading ? "..." : `€${(route.priceCents / 100).toFixed(2)} kaufen`}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          <section className="city-preview">
+            <SectionTitle
+              title="Beliebte Touren"
+              subtitle="Kostenlos starten – oder alle 7 Städte entdecken."
+            />
+            <div className="city-cards">
+              {routes.filter(r => FEATURED_CITIES.includes(r.id)).map((route) => {
+                const isFree = route.priceCents === 0;
+                const owned = hasAccess(route.id);
+                return (
+                  <CityCard key={route.id} route={route} canStart={isFree || owned} owned={owned} isFree={isFree} />
+                );
+              })}
+            </div>
+            <div className="city-preview-footer">
+              <button className="btn btn-primary" onClick={() => setPage("tours")}>
+                Alle {stats.cities} Städte entdecken →
+              </button>
             </div>
           </section>
 
-          {/* Gallery Section */}
-          <section className="gallery-section">
-            <h2 className="section-title">Erlebnis-Eindrücke</h2>
-            <p className="section-subtitle">
-              Ein Vorgeschmack auf das, was dich erwartet.
-            </p>
-            <div className="gallery-grid">
-              {routes.map((route) => (
-                <div
-                  key={route.id}
-                  className="gallery-card"
-                  onClick={() => startTour(route.id)}
-                >
-                  <img
-                    src={route.imageUrl}
-                    alt={route.city}
-                    loading="lazy"
-                    className="gallery-image"
-                  />
-                  <div className="gallery-overlay">
-                    <span className="gallery-city">{route.city}</span>
-                    <span className="gallery-cta">Tour entdecken →</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Pricing Section */}
-          <PricingSection onStartFreeTour={() => startTour("berlin-classic")} />
-
-          {/* FAQ Section */}
-          <FAQSection />
-
-          {/* Features Section */}
           <section className="features">
-            <h2 className="section-title">So funktioniert's</h2>
+            <SectionTitle title="So funktioniert's" />
             <div className="features-grid">
               <div className="feature-card">
                 <div className="feature-icon">📍</div>
                 <h3>GPS-gesteuert</h3>
-                <p>
-                  Die Audio-Tour startet automatisch, sobald du dich einer
-                  Sehenswürdigkeit näherst. Oder manuell – wie du magst.
-                </p>
+                <p>Die Audio-Tour startet automatisch, sobald du dich einer Sehenswürdigkeit näherst.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">🎧</div>
                 <h3>Professionelles Audio</h3>
-                <p>
-                  Hochwertige Sprachaufnahmen in Deutsch und Englisch – mit
-                  historischem Hintergrundwissen zu jeder Station.
-                </p>
+                <p>Hochwertige Sprachaufnahmen in Deutsch und Englisch – mit historischem Hintergrundwissen.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">🗺️</div>
                 <h3>Interaktive Karte</h3>
-                <p>
-                  Verfolge deine Position in Echtzeit und entdecke die Route
-                  auf einer detaillierten OpenStreetMap-Karte.
-                </p>
+                <p>Verfolge deine Position in Echtzeit auf einer detaillierten OpenStreetMap-Karte.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">📱</div>
                 <h3>Keine Installation</h3>
-                <p>
-                  Einfach die Webseite öffnen – keine App, kein Login, kein
-                  Download. Läuft in jedem Browser.
-                </p>
+                <p>Einfach die Webseite öffnen – keine App, kein Login, kein Download.</p>
               </div>
             </div>
           </section>
 
-          {/* Footer */}
           <footer className="footer">
             <div className="footer-content">
               <div className="footer-brand">
                 <span className="footer-logo">🇩🇪 Deutschland Tour</span>
-                <p className="footer-text">
-                  Self-Guided Walking Tours – Geschichte erleben, Schritt für
-                  Schritt.
-                </p>
+                <p className="footer-text">Self-Guided Walking Tours – Geschichte erleben, Schritt für Schritt.</p>
               </div>
               <div className="footer-links">
-                <span className="footer-link" onClick={() => setScreen("about")}>
-                  Über uns
-                </span>
-                <a
-                  className="footer-link"
-                  href="#faq"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  FAQ
-                </a>
+                <button className="footer-link" onClick={() => setPage("about")}>Über uns</button>
+                <button className="footer-link" onClick={() => setPage("tours")}>Touren</button>
+                <button className="footer-link" onClick={() => setPage("pricing")}>Preise</button>
               </div>
             </div>
             <div className="footer-bottom">
@@ -326,36 +237,122 @@ export function AppContent() {
         </>
       )}
 
-      {screen === "tour" && selectedRoute && (
-        <Suspense fallback={
-          <div className="loading-screen">
-            <div className="loading-spinner" />
-            <p>Lade Tour...</p>
-          </div>
-        }>
-          <TourView
-            pois={selectedRoute.pois}
-            routeId={selectedRoute.id}
-            routeName={selectedRoute.name}
-            onBack={() => setScreen("landing")}
-          />
-        </Suspense>
+      {/* === TOURS PAGE === */}
+      {page === "tours" && (
+        <div className="page-tours">
+          <section className="search-section">
+            <div className="search-section-content">
+              <h2 className="page-heading">Alle Touren</h2>
+              <SearchBar
+                onSearch={(query) => {
+                  const found = routes.find(
+                    (r) =>
+                      r.city.toLowerCase().includes(query.toLowerCase()) ||
+                      r.tags?.some((t) => t.toLowerCase().includes(query.toLowerCase()))
+                  );
+                  if (found) startTour(found.id);
+                }}
+              />
+              <div className="search-popular">
+                <span className="search-popular-label">Beliebt:</span>
+                {routes.map((r) => (
+                  <button key={r.id} className="search-popular-tag" onClick={() => startTour(r.id)}>
+                    {r.city}
+                  </button>
+                ))}
+                {["historisch", "architektur", "kulinarisch"].map((tag) => (
+                  <button
+                    key={tag}
+                    className="search-popular-tag search-popular-tag--tag"
+                    onClick={() => {
+                      const found = routes.find((r) => r.tags?.includes(tag));
+                      if (found) startTour(found.id);
+                    }}
+                  >#{tag}</button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="city-preview">
+            <div className="city-cards">
+              {routes.map((route) => {
+                const isFree = route.priceCents === 0;
+                const owned = hasAccess(route.id);
+                const canStart = isFree || owned;
+                return (
+                  <CityCard key={route.id} route={route} canStart={canStart} owned={owned} isFree={isFree} />
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Gallery */}
+          <section className="gallery-section">
+            <SectionTitle title="Erlebnis-Eindrücke" subtitle="Ein Vorgeschmack auf das, was dich erwartet." />
+            <div className="gallery-grid">
+              {routes.map((route) => (
+                <div key={route.id} className="gallery-card" onClick={() => startTour(route.id)}>
+                  <img src={route.imageUrl} alt={route.city} loading="lazy" className="gallery-image" />
+                  <div className="gallery-overlay">
+                    <span className="gallery-city">{route.city}</span>
+                    <span className="gallery-cta">Tour entdecken →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* FAQ */}
+          <FAQSection />
+
+          <footer className="footer">
+            <div className="footer-content">
+              <div className="footer-brand">
+                <span className="footer-logo">🇩🇪 Deutschland Tour</span>
+                <p className="footer-text">Self-Guided Walking Tours – Geschichte erleben, Schritt für Schritt.</p>
+              </div>
+              <div className="footer-links">
+                <button className="footer-link" onClick={() => setPage("about")}>Über uns</button>
+                <button className="footer-link" onClick={() => setPage("pricing")}>Preise</button>
+              </div>
+            </div>
+            <div className="footer-bottom">
+              <p>© 2026 Deutschland Tour. Open Source &amp; kostenlos.</p>
+            </div>
+          </footer>
+        </div>
       )}
 
-      {screen === "about" && (
+      {/* === PRICING PAGE === */}
+      {page === "pricing" && (
+        <div className="page-pricing">
+          <PricingSection
+            onStartFreeTour={() => startTour("berlin-classic")}
+            standalone
+          />
+          <footer className="footer">
+            <div className="footer-content">
+              <div className="footer-brand">
+                <span className="footer-logo">🇩🇪 Deutschland Tour</span>
+                <p className="footer-text">Self-Guided Walking Tours – Geschichte erleben, Schritt für Schritt.</p>
+              </div>
+            </div>
+            <div className="footer-bottom">
+              <p>© 2026 Deutschland Tour. Open Source &amp; kostenlos.</p>
+            </div>
+          </footer>
+        </div>
+      )}
+
+      {/* === ABOUT PAGE === */}
+      {page === "about" && (
         <div className="about-page">
-          <button className="about-back" onClick={() => setScreen("landing")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Zurück
-          </button>
           <h1>Über Deutschland Tour</h1>
           <p>
             Deutschland Tour ist ein Open-Source-Projekt für selbstgeführte
             Audio-Walking-Touren durch deutsche Städte. Keine Werbung, kein
-            Tracking, keine versteckten Kosten – einfach reines
-            Kulturerlebnis.
+            Tracking, keine versteckten Kosten – einfach reines Kulturerlebnis.
           </p>
           <p>
             Jede Tour wird von Historikern und lokalen Experten recherchiert.
@@ -366,7 +363,32 @@ export function AppContent() {
             Ideal für Individualreisende, Familienausflüge und alle, die
             Städte auf eigene Faust entdecken möchten.
           </p>
+          <h2>Technologie</h2>
+          <ul>
+            <li>React + TypeScript Frontend (Vite)</li>
+            <li>Express + PostgreSQL Backend</li>
+            <li>MinIO für Audio-Dateien</li>
+            <li>Edge-TTS für Sprachausgabe</li>
+            <li>Leaflet + OpenStreetMap Karten</li>
+          </ul>
         </div>
+      )}
+
+      {/* === TOUR VIEW === */}
+      {page === "tour" && selectedRoute && (
+        <Suspense fallback={
+          <div className="loading-screen">
+            <div className="loading-spinner" />
+            <p>Lade Tour...</p>
+          </div>
+        }>
+          <TourView
+            pois={selectedRoute.pois}
+            routeId={selectedRoute.id}
+            routeName={selectedRoute.name}
+            onBack={() => setPage("home")}
+          />
+        </Suspense>
       )}
     </div>
   );
