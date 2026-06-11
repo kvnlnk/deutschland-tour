@@ -423,7 +423,6 @@ export function AppContent() {
             Tracking, keine versteckten Kosten – einfach reines Kulturerlebnis.
           </p>
           <p>
-            Jede Tour wird von Historikern und lokalen Experten recherchiert.
             Die Audioguides sind in Deutsch und Englisch verfügbar und werden
             automatisch per GPS an jeder Station abgespielt.
           </p>
@@ -431,13 +430,17 @@ export function AppContent() {
             Ideal für Individualreisende, Familienausflüge und alle, die
             Städte auf eigene Faust entdecken möchten.
           </p>
-          <h2>Technologie</h2>
+          <h2>Features</h2>
           <ul>
-            <li>React + TypeScript Frontend (Vite)</li>
-            <li>Express + PostgreSQL Backend</li>
-            <li>MinIO für Audio-Dateien</li>
-            <li>Edge-TTS für Sprachausgabe</li>
-            <li>Leaflet + OpenStreetMap Karten</li>
+            <li>🎧 GPS-gesteuerte Audioguides in Deutsch & Englisch</li>
+            <li>🗺️ Interaktive Karte mit POI-Markern und Routenführung</li>
+            <li>🖥️ Virtuelle Touren – alle Städte auch von zuhause erkunden</li>
+            <li>🌙 Dark Mode für angenehmes Erlebnis bei Nacht</li>
+            <li>📱 Optimiert für Smartphone – keine App-Installation nötig</li>
+            <li>🧱 Baukasten-System für eigene Routen</li>
+            <li>⭐ Favoriten & Bewertungen für Touren</li>
+            <li>🔍 Volltext-Suche nach Städten und Kategorien</li>
+            <li>💯 Komplett kostenlos – keine versteckten Kosten</li>
           </ul>
         </div>
       )}
