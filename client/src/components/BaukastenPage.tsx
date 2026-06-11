@@ -1,225 +1,231 @@
-import { useState, useMemo } from "react";
-import { useBaukasten, type BaukastenModul } from "../hooks/useBaukasten";
+import { useState, useMemo, useRef, useEffect } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { useCustomRoutes, type CustomPOI } from "../hooks/useCustomRoutes";
+import { FALLBACK_ROUTES } from "../data";
+import type { POI } from "../types";
 
-const CATEGORIES = [
-  { key: "stadt", icon: "🏙️", label: "Städte" },
-  { key: "natur", icon: "🌲", label: "Natur" },
-  { key: "kultur", icon: "🏰", label: "Kultur" },
-  { key: "kulinarik", icon: "🍺", label: "Kulinarik" },
-  { key: "abenteuer", icon: "🧗", label: "Abenteuer" },
-  { key: "party", icon: "🎪", label: "Party" },
-  { key: "relax", icon: "🛀", label: "Relax" },
-  { key: "unique", icon: "✨", label: "Unique" },
-] as const;
+type PickPoi = Pick<POI, "id" | "name" | "nameEn" | "lat" | "lng" | "description" | "descriptionEn">;
 
-const MODULES: BaukastenModul[] = [
-  { id: "hamburg", title: "Hamburg", cat: "stadt", location: "Norden", desc: "Elbphilharmonie, Speicherstadt, Szene, Nachtleben", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🏙️" },
-  { id: "berlin", title: "Berlin", cat: "stadt", location: "Osten", desc: "Geschichte, Clubkultur, Street Art, Weltstadt", highlights: [], time: "2–3 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "leipzig", title: "Leipzig", cat: "stadt", location: "Osten", desc: "Szene, Industrie-Chic, Kanäle, Kunst", highlights: [], time: "1–2 Tage", best: "Frühling–Herbst", emoji: "🏙️" },
-  { id: "dresden", title: "Dresden", cat: "stadt", location: "Osten", desc: "Barock, Elbflorenz, Frauenkirche, Neustadt", highlights: [], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "muenchen", title: "München", cat: "stadt", location: "Süden", desc: "Biergärten, Isar-Floßfahrt, Kunst, Alpenblick", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🏙️" },
-  { id: "koeln", title: "Köln", cat: "stadt", location: "Westen", desc: "Dom, Rheinufer, Brauhaus-Kultur, Szene", highlights: [], time: "1–2 Tage", best: "ganzjährig", emoji: "🏙️" },
-  { id: "bamberg", title: "Bamberg", cat: "stadt", location: "Franken", desc: "UNESCO-Altstadt, Rauchbier, 11 Brauereien", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏘️" },
-  { id: "frankfurt", title: "Frankfurt", cat: "stadt", location: "Zentrum", desc: "Skyline, Mainufer, Food-Szene, Bankenviertel", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏙️" },
-  { id: "saechsische_schweiz", title: "Sächsische Schweiz", cat: "natur", location: "Osten", desc: "Felsen, Malerweg, Basteibrücke — wie eine andere Welt", highlights: [], time: "2–3 Tage", best: "April–Oktober", emoji: "🌲" },
-  { id: "schwarzwald", title: "Schwarzwald", cat: "natur", location: "Südwesten", desc: "Wasserfälle, Wälder, Kuckucksuhren, Feldberg", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🌲" },
-  { id: "koenigssee", title: "Königssee", cat: "natur", location: "Berchtesgaden", desc: "Türkisblauer See, von Bergen eingerahmt", highlights: [], time: "1–2 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "seenplatte", title: "Mecklenb. Seenplatte", cat: "natur", location: "Norden", desc: "500+ Seen, Kanu, Hausboot, absolute Stille", highlights: [], time: "2–4 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "spreewald", title: "Spreewald", cat: "natur", location: "Osten", desc: "Kahnfahren, Gurken, Biosphärenreservat", highlights: [], time: "1–2 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "ruegen", title: "Rügen", cat: "natur", location: "Ostsee", desc: "Kreidefelsen, Nationalpark Jasmund, Ostsee", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🌲" },
-  { id: "zugspitze", title: "Zugspitze", cat: "natur", location: "Garmisch", desc: "Höchster Berg DE, Eibsee, Zahnradbahn, Schlucht", highlights: [], time: "1 Tag", best: "Mai–Oktober", emoji: "🏔️" },
-  { id: "neuschwanstein", title: "Neuschwanstein", cat: "kultur", location: "Bayern", desc: "Das Märchenschloss. Disney-Vorlage. Tickets vorher buchen!", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
-  { id: "romantische_strasse", title: "Romantische Straße", cat: "kultur", location: "Franken→Bayern", desc: "Rothenburg, Würzburg, Weinberge, Schlösser", highlights: [], time: "2–3 Tage", best: "April–Oktober", emoji: "🏰" },
-  { id: "rheinromantik", title: "Rheinromantik", cat: "kultur", location: "Westen", desc: "Burgen, Loreley, Weinberge, schönste Flusslandschaft", highlights: [], time: "2 Tage", best: "Mai–Oktober", emoji: "🏰" },
-  { id: "heidelberg", title: "Heidelberg", cat: "kultur", location: "Südwesten", desc: "Romantischste Altstadt, Schloss, Philosophenweg", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🏰" },
-  { id: "weinstrasse", title: "Deutsche Weinstraße", cat: "kulinarik", location: "Pfalz", desc: "Riesling pur, Winzerdörfer, Pfälzer Küche", highlights: [], time: "1–2 Tage", best: "September–Oktober", emoji: "🍷" },
-  { id: "bierkultur", title: "Bierkultur-Tour", cat: "kulinarik", location: "Westen/Franken", desc: "Kölsch, Alt, Rauchbier — Brauereien satt", highlights: [], time: "2 Tage", best: "ganzjährig", emoji: "🍺" },
-  { id: "bodensee", title: "Bodensee", cat: "kulinarik", location: "Südwesten", desc: "Wein, Insel Mainau, Alpenpanorama, Fisch", highlights: [], time: "2 Tage", best: "Mai–September", emoji: "🍷" },
-  { id: "nationalpark_eifel", title: "Nationalpark Eifel", cat: "abenteuer", location: "Westen", desc: "Wildnis-Trail, Kletterwald, Stauseen, Burg", highlights: [], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
-  { id: "harz", title: "Harz & Brocken", cat: "abenteuer", location: "Zentrum", desc: "Brocken, Dampflok, Moore, Klippen", highlights: [], time: "1–2 Tage", best: "Mai–Oktober", emoji: "🧗" },
-  { id: "berlin_clubs", title: "Berliner Clubs", cat: "party", location: "Berlin", desc: "Berghain, Sisyphos, RSO – elektronische Musik satt", highlights: [], time: "1–3 Nächte", best: "ganzjährig", emoji: "🎪" },
-  { id: "hurricane", title: "Hurricane / Southside", cat: "party", location: "Norden/Süden", desc: "Parallel-Festivals im Juni. Camping, Live-Musik", highlights: [], time: "Wochenende", best: "Juni 2026", emoji: "🎪" },
-  { id: "leipzig_nacht", title: "Leipzig Nachtleben", cat: "party", location: "Leipzig", desc: "Ilses Erika, distillery, UT Connewitz", highlights: [], time: "1–2 Nächte", best: "ganzjährig", emoji: "🎪" },
-  { id: "baden_baden", title: "Baden-Baden", cat: "relax", location: "Schwarzwald", desc: "Caracalla-Therme, römisches Bade-Erlebnis", highlights: [], time: "1 Tag", best: "ganzjährig", emoji: "🛀" },
-  { id: "ostsee_strand", title: "Ostseestrände", cat: "relax", location: "Norden", desc: "Timmendorf, Usedom – feiner Sand, kein Nordseewind", highlights: [], time: "1–2 Tage", best: "Juni–August", emoji: "🛀" },
-  { id: "miniatur_wunderland", title: "Miniatur Wunderland", cat: "unique", location: "Hamburg", desc: "Größte Modelleisenbahn. 10.000 m² Details", highlights: [], time: "3–4 Std.", best: "vorher buchen", emoji: "✨" },
-  { id: "baumhaus", title: "Baumhaushotel", cat: "unique", location: "Allgäu", desc: "In Baumkugeln übernachten – Free Spirit Sphere", highlights: [], time: "1 Nacht", best: "ganzjährig", emoji: "✨" },
-  { id: "teufelsbruecke", title: "Teufelsbrücke", cat: "unique", location: "Kromlau", desc: "Brücke die im Wasser einen perfekten Kreis bildet", highlights: [], time: "1–2 Std.", best: "Mai–Juni", emoji: "✨" },
-  { id: "flossfahrt", title: "Isar-Floßfahrt", cat: "unique", location: "München", desc: "Floß die Isar runter – Bier, Musik, Sonne", highlights: [], time: "4–6 Std.", best: "Juni–August", emoji: "✨" },
-];
-
-function matchesFilter(m: BaukastenModul, filter: string): boolean {
-  if (filter === "all") return true;
-  const cats = Array.isArray(m.cat) ? m.cat : [m.cat];
-  return cats.includes(filter);
+function toCustomPoi(p: PickPoi, order: number): CustomPOI {
+  return { id: p.id, name: p.name, description: p.description, lat: p.lat, lng: p.lng, order };
 }
 
-function catIcon(m: BaukastenModul): string {
-  const c = Array.isArray(m.cat) ? m.cat[0] : m.cat;
-  return CATEGORIES.find((x) => x.key === c)?.icon || "📍";
-}
+// Group POIs by city
+const POI_CITIES = (() => {
+  const map = new Map<string, PickPoi[]>();
+  for (const route of FALLBACK_ROUTES) {
+    const list = map.get(route.city) || [];
+    for (const p of route.pois) {
+      list.push({ id: p.id, name: p.name, nameEn: p.nameEn, lat: p.lat, lng: p.lng, description: p.description, descriptionEn: p.descriptionEn });
+    }
+    map.set(route.city, list);
+  }
+  return Array.from(map.entries()).map(([city, pois]) => ({ city, pois }));
+})();
 
-const CAT_COLORS: Record<string, string> = {
-  stadt: "#a29bfe", natur: "#00b894", kultur: "#fdcb6e",
-  kulinarik: "#e17055", abenteuer: "#0984e3", party: "#fd79a8",
-  relax: "#81ecec", unique: "#f39c12",
-};
+export default function POIPicker() {
+  const [selectedPois, setSelectedPois] = useState<CustomPOI[]>([]);
+  const [activeCity, setActiveCity] = useState<string>(POI_CITIES[0]?.city || "");
+  const [routeName, setRouteName] = useState("");
+  const [saved, setSaved] = useState(false);
+  const { addRoute } = useCustomRoutes();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<L.Map | null>(null);
+  const polylineRef = useRef<L.Polyline | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
-export default function BaukastenPage() {
-  const { selected, toggle, clear, remove } = useBaukasten();
-  const [category, setCategory] = useState<string | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
-
-  const filtered = useMemo(
-    () => (category ? MODULES.filter((m) => matchesFilter(m, category)) : []),
-    [category]
+  const currentPois = useMemo(
+    () => POI_CITIES.find((c) => c.city === activeCity)?.pois || [],
+    [activeCity]
   );
 
-  const selectedMods = useMemo(
-    () => MODULES.filter((m) => selected.includes(m.id)),
-    [selected]
-  );
+  const selectedIds = useMemo(() => new Set(selectedPois.map((p) => p.id)), [selectedPois]);
 
-  const exportRoute = () => {
-    if (selectedMods.length === 0) return;
-    const text =
-      "🧩 Meine Deutschland Route\n═══════════════════════════\n\n" +
-      selectedMods
-        .map(
-          (m, i) =>
-            `${i + 1}. ${m.emoji} ${m.title} (${m.location})\n   ${m.desc} · ⏱ ${m.time}`
-        )
-        .join("\n\n");
-    navigator.clipboard?.writeText(text).then(() => {
-      const btn = document.getElementById("bk-export-btn") as HTMLButtonElement;
-      if (btn) {
-        btn.textContent = "✅ Kopiert!";
-        setTimeout(() => (btn.textContent = "📋 Kopieren"), 2000);
+  const togglePoi = (poi: PickPoi) => {
+    setSelectedPois((prev) => {
+      if (prev.find((p) => p.id === poi.id)) {
+        const next = prev.filter((p) => p.id !== poi.id);
+        return next.map((p, i) => ({ ...p, order: i + 1 }));
       }
+      return [...prev, toCustomPoi(poi, prev.length + 1)];
     });
+    setSaved(false);
   };
 
-  if (!category) {
-    return (
-      <div className="bk-page">
-        <div className="bk-header">
-          <h1 className="bk-title">🧩 Reise-Baukasten</h1>
-          <p className="bk-sub">Wähl eine Kategorie → dann die Module für deine Route</p>
-        </div>
-        <div className="bk-cat-grid">
-          {CATEGORIES.map((c) => {
-            const count = MODULES.filter((m) => matchesFilter(m, c.key)).length;
-            return (
-              <button
-                key={c.key}
-                className="bk-cat-btn"
-                style={{ "--cat-color": CAT_COLORS[c.key] || "#666" } as React.CSSProperties}
-                onClick={() => setCategory(c.key)}
-              >
-                <span className="bk-cat-icon">{c.icon}</span>
-                <span className="bk-cat-label">{c.label}</span>
-                <span className="bk-cat-count">{count}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {selectedMods.length > 0 && (
-          <button className="bk-fab" onClick={() => setShowSidebar(true)}>
-            🧩 Route <span className="bk-fab-count">{selected.length}</span>
-          </button>
-        )}
-        {showSidebar && <Sidebar selectedMods={selectedMods} clear={clear} remove={remove} exportRoute={exportRoute} onClose={() => setShowSidebar(false)} />}
-      </div>
+  const removePoi = (id: string) => {
+    setSelectedPois((prev) =>
+      prev.filter((p) => p.id !== id).map((p, i) => ({ ...p, order: i + 1 }))
     );
-  }
+    setSaved(false);
+  };
 
-  const currentCat = CATEGORIES.find((c) => c.key === category);
+  const clearAll = () => {
+    setSelectedPois([]);
+    setSaved(false);
+  };
+
+  const saveRoute = () => {
+    if (selectedPois.length < 2 || !routeName.trim()) return;
+    const cities = [...new Set(selectedPois.map((p => {
+      for (const c of POI_CITIES) {
+        if (c.pois.find(pp => pp.id === p.id)) return c.city;
+      }
+      return "";
+    })))].filter(Boolean);
+    
+    addRoute({
+      name: routeName.trim(),
+      city: cities.join(", ") || "Eigene Route",
+      description: `${selectedPois.length} Stationen · Selbst zusammengestellt`,
+      pois: selectedPois,
+    });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  // Map
+  useEffect(() => {
+    if (!mapRef.current || mapInstance.current) return;
+    const map = L.map(mapRef.current, {
+      center: [51.5, 10.5],
+      zoom: 6,
+      zoomControl: true,
+      attributionControl: false,
+    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
+    mapInstance.current = map;
+    return () => { map.remove(); mapInstance.current = null; };
+  }, []);
+
+  // Update markers + polyline
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+    if (polylineRef.current) { polylineRef.current.remove(); polylineRef.current = null; }
+
+    if (selectedPois.length === 0) return;
+
+    const latlngs: L.LatLngExpression[] = [];
+    selectedPois.forEach((poi, i) => {
+      latlngs.push([poi.lat, poi.lng]);
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:28px;height:28px;background:#d4a853;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0f2b3d;font-size:11px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${i + 1}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      const marker = L.marker([poi.lat, poi.lng], { icon }).addTo(map);
+      marker.bindTooltip(poi.name, { direction: "top" });
+      markersRef.current.push(marker);
+    });
+
+    polylineRef.current = L.polyline(latlngs, {
+      color: "#d4a853",
+      weight: 3,
+      opacity: 0.7,
+    }).addTo(map);
+
+    map.fitBounds(L.latLngBounds(latlngs).pad(0.3));
+  }, [selectedPois]);
 
   return (
     <div className="bk-page">
       <div className="bk-header">
-        <button className="bk-back-btn" onClick={() => setCategory(null)}>← Übersicht</button>
-        <h1 className="bk-title" style={{ marginTop: "0.5rem" }}>
-          {currentCat?.icon} {currentCat?.label}
-        </h1>
-        <p className="bk-sub">{filtered.length} Module — klick zum Hinzufügen</p>
+        <h1 className="bk-title">🧩 Route bauen</h1>
+        <p className="bk-sub">Wähl Orte aus → Route mit Karte → speichern & nutzen</p>
       </div>
 
-      <div className="bk-list">
-        {filtered.map((m) => {
-          const sel = selected.includes(m.id);
-          return (
-            <div
-              key={m.id}
-              className={`bk-item ${sel ? "bk-item--sel" : ""}`}
-              onClick={() => toggle(m.id)}
-            >
-              <div className="bk-item-left">
-                <div className="bk-item-emoji">{m.emoji}</div>
-                <div>
-                  <div className="bk-item-title">{m.title}</div>
-                  <div className="bk-item-loc">{m.location}</div>
+      {/* City tabs */}
+      <div className="bk-tabs">
+        {POI_CITIES.map((c) => (
+          <button
+            key={c.city}
+            className={`bk-tab ${activeCity === c.city ? "bk-tab--active" : ""}`}
+            onClick={() => setActiveCity(c.city)}
+          >
+            📍 {c.city} <span className="bk-tab-count">{c.pois.length}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* POI list */}
+      <div className="bk-section">
+        <div className="bk-poi-list">
+          {currentPois.map((poi) => {
+            const sel = selectedIds.has(poi.id);
+            return (
+              <div
+                key={poi.id}
+                className={`bk-poi ${sel ? "bk-poi--sel" : ""}`}
+                onClick={() => togglePoi(poi)}
+              >
+                <div className="bk-poi-left">
+                  <span className="bk-poi-name">{poi.name}</span>
                 </div>
+                <div className="bk-poi-coords">
+                  {poi.lat.toFixed(3)}, {poi.lng.toFixed(3)}
+                </div>
+                {sel && <span className="bk-poi-check">✓</span>}
               </div>
-              <div className="bk-item-desc">{m.desc}</div>
-              <div className="bk-item-meta">
-                <span>⏱ {m.time}</span>
-                <span>📅 {m.best}</span>
-              </div>
-              {sel && <div className="bk-check">✓</div>}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      <button className="bk-fab" onClick={() => setShowSidebar(true)}>
-        🧩 Route <span className="bk-fab-count">{selected.length}</span>
-      </button>
-      {showSidebar && <Sidebar selectedMods={selectedMods} clear={clear} remove={remove} exportRoute={exportRoute} onClose={() => setShowSidebar(false)} />}
-    </div>
-  );
-}
+      {/* Map */}
+      <div className="bk-section">
+        <div className="bk-map" ref={mapRef} />
+        {selectedPois.length === 0 && (
+          <p className="bk-map-hint">👆 Wähl POIs oben aus — sie erscheinen hier auf der Karte</p>
+        )}
+      </div>
 
-function Sidebar({
-  selectedMods,
-  clear,
-  remove,
-  exportRoute,
-  onClose,
-}: {
-  selectedMods: BaukastenModul[];
-  clear: () => void;
-  remove: (id: string) => void;
-  exportRoute: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <>
-      <div className="bk-overlay" onClick={onClose} />
-      <div className="bk-sidebar">
-        <div className="bk-sidebar-head">
-          <h2>🧩 Meine Route</h2>
-          <button className="bk-close" onClick={onClose}>✕</button>
-        </div>
-        {selectedMods.length === 0 ? (
-          <div className="bk-empty">Klick auf Module, um sie hier zu sehen</div>
-        ) : (
-          <div className="bk-sidebar-list">
-            {selectedMods.map((m, i) => (
-              <div key={m.id} className="bk-sidebar-item">
-                <span className="bk-sidebar-num">{i + 1}</span>
-                <span className="bk-sidebar-title">{m.emoji} {m.title}</span>
-                <button className="bk-sidebar-rm" onClick={() => remove(m.id)}>✕</button>
+      {/* Selected list + save */}
+      {selectedPois.length > 0 && (
+        <div className="bk-section">
+          <div className="bk-sel-header">
+            <span className="bk-sel-title">Deine Route ({selectedPois.length})</span>
+            <button className="bk-clear-link" onClick={clearAll}>Alle löschen</button>
+          </div>
+          <div className="bk-sel-list">
+            {selectedPois.map((p, i) => (
+              <div key={p.id} className="bk-sel-item">
+                <span className="bk-sel-num">{i + 1}</span>
+                <span className="bk-sel-name">{p.name}</span>
+                <button className="bk-sel-rm" onClick={() => removePoi(p.id)}>✕</button>
               </div>
             ))}
           </div>
-        )}
-        <div className="bk-sidebar-actions">
-          <button id="bk-export-btn" className="bk-btn bk-btn-p" onClick={exportRoute}>📋 Kopieren</button>
-          <button className="bk-btn bk-btn-d" onClick={clear}>🗑️ Leeren</button>
+          <div className="bk-save-row">
+            <input
+              className="bk-name-input"
+              placeholder="Routenname (z.B. Meine Berlin-Tour)"
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+            />
+            <button
+              className="bk-save-btn"
+              disabled={selectedPois.length < 2 || !routeName.trim()}
+              onClick={saveRoute}
+            >
+              {saved ? "✅ Gespeichert!" : "💾 Als Route speichern"}
+            </button>
+          </div>
+          <p className="bk-hint">Erscheint dann in <strong>Meine Touren</strong> → dort starten (GPS oder Virtuell)</p>
         </div>
-      </div>
-    </>
+      )}
+
+      {selectedPois.length > 0 && selectedPois.length < 2 && (
+        <p className="bk-hint" style={{ textAlign: "center", marginTop: "0.5rem" }}>
+          Wähl mindestens 2 Stationen, um eine Route zu speichern
+        </p>
+      )}
+    </div>
   );
 }
