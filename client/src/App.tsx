@@ -8,6 +8,7 @@ import RoutePreview from "./components/RoutePreview";
 import "./styles/pricing.css";
 import { PurchaseProvider, usePurchase } from "./hooks/usePurchase";
 import { useDarkMode } from "./hooks/useDarkMode";
+import { useFavorites } from "./hooks/useFavorites";
 import {
   mergeRoutes,
   getRouteById,
@@ -20,7 +21,7 @@ const TourView = lazy(() => import("./components/TourView"));
 
 type Page = "home" | "tours" | "pricing" | "about" | "tour";
 
-const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic"];
+const FEATURED_CITIES = ["berlin-classic", "muenchen-classic", "hamburg-classic", "koeln-classic", "dresden-classic", "heidelberg-preview"];
 
 export function AppContent() {
   const [page, setPage] = useState<Page>("home");
@@ -29,6 +30,7 @@ export function AppContent() {
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const { dark, toggle: toggleDark } = useDarkMode();
   const { hasAccess, purchaseTour, loading } = usePurchase();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   // Load from API on mount
   useEffect(() => {
@@ -85,15 +87,21 @@ export function AppContent() {
 
   const CityCard = ({ route, canStart, owned, isFree }: {
     route: Route; canStart: boolean; owned: boolean; isFree: boolean;
-  }) => (
+  }) => {
+    const isComingSoon = route.tags?.includes("coming-soon");
+    const fav = isFavorite(route.id);
+
+    return (
     <div
-      className={`city-card ${canStart ? "" : "city-card--locked"}`}
+      className={`city-card ${canStart ? "" : "city-card--locked"} ${isComingSoon ? "city-card--coming-soon" : ""}`}
       onClick={() => handleCityClick(route)}
     >
       <div className="city-card-image">
         <img src={route.imageUrl} alt={route.city} loading="lazy" />
         <div className="city-card-overlay">
-          {isFree ? (
+          {isComingSoon ? (
+            <span className="city-card-badge city-card-badge--coming-soon">DEMNÄCHST</span>
+          ) : isFree ? (
             <span className="city-card-badge city-card-badge--free">KOSTENLOS</span>
           ) : owned ? (
             <span className="city-card-badge city-card-badge--owned">GEKAUFT</span>
@@ -103,7 +111,7 @@ export function AppContent() {
             </span>
           )}
         </div>
-        {!canStart && !loading && (
+        {!canStart && !loading && !isComingSoon && (
           <div className="city-card-lock">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -111,21 +119,36 @@ export function AppContent() {
             </svg>
           </div>
         )}
+        {/* Favorite toggle */}
+        <button
+          className={`city-card-fav ${fav ? "city-card-fav--active" : ""}`}
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(route.id); }}
+          title={fav ? "Von Favoriten entfernen" : "Zu Favoriten hinzufügen"}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"}
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </button>
       </div>
       <div className="city-card-body">
         <h3 className="city-card-title">{route.city}</h3>
         <p className="city-card-desc">{route.description}</p>
         <div className="city-card-meta">
-          <span>🚶 {route.distanceKm} km</span>
-          <span>⏱ ~{route.durationMinutes} min</span>
-          <span>📍 {route.pois.length} Stationen</span>
+          {!isComingSoon && (
+            <>
+              <span>🚶 {route.distanceKm} km</span>
+              <span>⏱ ~{route.durationMinutes} min</span>
+              <span>📍 {route.pois.length} Stationen</span>
+            </>
+          )}
           {route.tags && route.tags.length > 0 && (
             <span className="city-card-tags">
-              {route.tags.slice(0, 2).map(t => `#${t}`).join(" ")}
+              {route.tags.slice(0, 2).filter(t => t !== "coming-soon").map(t => `#${t}`).join(" ")}
             </span>
           )}
         </div>
-        {!canStart && (
+        {!canStart && !isComingSoon && (
           <button
             className="btn btn-accent pricing-btn-sm"
             onClick={(e) => { e.stopPropagation(); purchaseTour(route.id); }}
@@ -134,9 +157,12 @@ export function AppContent() {
             {loading ? "..." : `€${(route.priceCents / 100).toFixed(2)} kaufen`}
           </button>
         )}
+        {isComingSoon && (
+          <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginTop: "0.5rem" }}>🔜 In Vorbereitung</p>
+        )}
       </div>
     </div>
-  );
+  )};
 
   return (
     <div className="app">
@@ -199,7 +225,7 @@ export function AppContent() {
           <section className="city-preview">
             <SectionTitle
               title="Beliebte Touren"
-              subtitle="Kostenlos starten – oder alle 7 Städte entdecken."
+              subtitle="Kostenlos starten – oder alle 6 Städte entdecken."
             />
             <div className="city-cards">
               {routes.filter(r => FEATURED_CITIES.includes(r.id)).map((route) => {
@@ -316,7 +342,7 @@ export function AppContent() {
           <section className="gallery-section">
             <SectionTitle title="Erlebnis-Eindrücke" subtitle="Ein Vorgeschmack auf das, was dich erwartet." />
             <div className="gallery-grid">
-              {routes.map((route) => (
+              {routes.filter(r => !r.tags?.includes("coming-soon")).map((route) => (
                 <div key={route.id} className="gallery-card" onClick={() => startTour(route.id)}>
                   <img src={route.imageUrl} alt={route.city} loading="lazy" className="gallery-image" />
                   <div className="gallery-overlay">
